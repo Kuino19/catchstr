@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>catchstr Light Feed</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#333333","secondary": "#888888","accent": "#39ff14","divider": "#f1f3f5",
+                        "surface": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem", 
+                        "lg": "0.5rem", 
+                        "xl": "0.75rem", 
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-display text-slate-900 overflow-x-hidden min-h-screen pb-20 selection:bg-accent selection:text-slate-900">
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-divider px-4 py-3 flex items-center justify-between">
+<h1 class="text-2xl font-extrabold tracking-tighter italic text-slate-900">catchstr</h1>
+<div class="flex items-center gap-4">
+<button class="relative text-slate-600 hover:text-slate-900 transition-colors">
+<span class="material-symbols-outlined text-[26px]">notifications</span>
+<span class="absolute top-0.5 right-0.5 block h-2 w-2 rounded-full bg-accent ring-2 ring-white"></span>
+</button>
+<button class="text-slate-600 hover:text-slate-900 transition-colors">
+<span class="material-symbols-outlined text-[26px] -rotate-45 relative top-[-1px]">send</span>
+</button>
+</div>
+</header>
+<section class="py-4 border-b border-divider">
+<div class="flex gap-4 overflow-x-auto px-4 no-scrollbar">
+<div class="flex flex-col items-center gap-1.5 min-w-[72px] cursor-pointer group">
+<div class="relative h-[72px] w-[72px] rounded-full p-[2px] border-2 border-slate-200 border-dashed group-hover:border-accent transition-colors">
+<div class="h-full w-full rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
+<img alt="My Profile Picture" class="h-full w-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCq1KHcL268qtE9K4S6cE2_VtmjdSwJItjbofhrgWrsyVU4-eBUDOJqd05xm-KGC1IHsguGzvchUvz8aGOvgTSA2hDdSDVZImUmKRDtHYyB7H9F6TH9xsN3QoaTfURdky7HP5061c_5pTjWLQ1IxLav3Vn6F2J9GEwdO5aw16WnI-a115uRRWI-IqyaXPafLjijxVONfy8M1QCEuIG-iO_K6u1uf6RvgRII4_4-9olCx_OjK0JJZXHNgYR7x--MPQH2dOZ8YsMalMQo"/>
+<div class="absolute inset-0 flex items-center justify-center bg-black/10">
+<span class="material-symbols-outlined text-white drop-shadow-md">add</span>
+</div>
+</div>
+<div class="absolute bottom-0 right-0 bg-accent h-6 w-6 rounded-full flex items-center justify-center border-2 border-white text-slate-900 font-bold shadow-sm">
+<span class="material-symbols-outlined text-[14px] font-bold">add</span>
+</div>
+</div>
+<p class="text-xs font-medium text-slate-500 text-center truncate w-full">My Story</p>
+</div>
+<div class="flex flex-col items-center gap-1.5 min-w-[72px] cursor-pointer">
+<div class="h-[72px] w-[72px] rounded-full p-[2px] bg-gradient-to-tr from-accent via-blue-400 to-purple-500">
+<div class="h-full w-full rounded-full bg-white p-[2px]">
+<img alt="Coach Mike profile" class="h-full w-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBgnJAoBD7DKwEImiG31M9baKqHAs3cGr22thUQVNhrqIHEce8b_dLQklPsDZYta70MfMifaSvy1se6jL29nuKTe6sh5_sqHXx3hOyvpTZuQwG5hc1H-yeiMK1A9HkjmGbG72ny3U_vqszH8kAMwVNNMV1QMHh7w_HNhNX9O63QWZJ1k7z6UR7qkvAzbM2RKIO8pYz14btIV5Cbr6Hn_46Cbm6V6-zwswCggqMc_E_mzOiedYseJ6Pg8L9fTz626kq08Cl1Ee062hb"/>
+</div>
+</div>
+<p class="text-xs font-medium text-slate-800 text-center truncate w-full">Coach Mike</p>
+</div>
+<div class="flex flex-col items-center gap-1.5 min-w-[72px] cursor-pointer">
+<div class="h-[72px] w-[72px] rounded-full p-[2px] bg-gradient-to-tr from-accent via-emerald-400 to-teal-500">
+<div class="h-full w-full rounded-full bg-white p-[2px]">
+<img alt="FC Scout profile" class="h-full w-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBbr3XcvAd8or9lJF4ooX8XQBOW0JjqmlrVTmKyBnZnjTOO_nNsp43qGkKoo3UNlBWkFX8A_-pRnBPhiSGRDYA-NlgEExWCYlV0JUPQ48pXBW5kTmIbTD7MljNJ-b8l02jnRyX8c7o_FOYoxdRXX03j-HEn0zDSp-hPZCTyoLVurpQBOTvbhXP-kOHdihHbwI-HpXrfrf6Qj-1HGDaCI4S_gtEeVmZdG5xnG0VnSgqj3EicBU05Oqcpd5_9HfGSEn75cwKyjt4UVsW"/>
+</div>
+</div>
+<p class="text-xs font-medium text-slate-800 text-center truncate w-full">FC Scout</p>
+</div>
+<div class="flex flex-col items-center gap-1.5 min-w-[72px] cursor-pointer">
+<div class="h-[72px] w-[72px] rounded-full p-[2px] bg-slate-200">
+<div class="h-full w-full rounded-full bg-white p-[2px]">
+<img alt="Pro Keeper profile" class="h-full w-full rounded-full object-cover grayscale opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrjOp-3r6pQbnbwpViUyBBBTVPnlbYiOCx_bBnRBAAEswdKdHwHfkSy3eHJLRIuY9khGKiU84Vb6e9MzOEOHNlKhurXEjlW29e83oDn6tmszHicUx5PmbKQ80me8DLj88eotH5NcyVKbcc5x5XwIRjbqIypi4d9UrPi6MsCPJZsIY83p_fNH-EnvCRqUeKHAB_c_CMTAy9iZ6L1b1BV6_-nois4zJDyOg6_nJhpMYWYFbRw30pFrIcUm4P45uADhtwizBRnIAOqgP6"/>
+</div>
+</div>
+<p class="text-xs font-medium text-slate-400 text-center truncate w-full">Pro Keeper</p>
+</div>
+<div class="flex flex-col items-center gap-1.5 min-w-[72px] cursor-pointer">
+<div class="h-[72px] w-[72px] rounded-full p-[2px] bg-gradient-to-tr from-orange-400 via-pink-500 to-purple-500">
+<div class="h-full w-full rounded-full bg-white p-[2px]">
+<img alt="Striker Ace profile" class="h-full w-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDydqxRjLssGlphKhRRGVPzMt6hsObo8nKZ_v4e7bcgMsAIpu_enUsNHmifNgzYUWKBxZPKhBaYBUDuncKSiTt1s7eiU4vrIdvwBcY4YZuvas9ikaALhlp_OqwbOBd0hF8PAy9peU7QX82pEvjpgeHOrdBueSIzo6sgTQUwe2yVU5B5eBX2Y6ocp0M-BZoqrff0X_aUYGCvw1O5t6bXANgcrapvr0Szs6T92T5WclAHwNWgwik9i0sN82-RWFET8FFELFHxyeTnMyyF"/>
+</div>
+</div>
+<p class="text-xs font-medium text-slate-800 text-center truncate w-full">Striker Ace</p>
+</div>
+<div class="flex flex-col items-center gap-1.5 min-w-[72px] cursor-pointer">
+<div class="h-[72px] w-[72px] rounded-full p-[2px] bg-gradient-to-tr from-accent via-blue-400 to-indigo-500">
+<div class="h-full w-full rounded-full bg-white p-[2px]">
+<img alt="Goalie profile" class="h-full w-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGqViCeBWH0mv5fWuHgw71kTNN1nVZivnka1SAEoBAZ-iJqVmA6cjDRH-jqq4nnAXdSVESco2NuWaFkzAbnLrWUlprUgmmQ75QysWNzOiW9v4Ik9N3AcNb6GtFg8sTj0HvEtpQLIBEPEqqBu8xFdAgKseQ7QfX1fHJ6QmkCJHNVu4QEhAffENLV0GO66GC3kZO_wcQT6kV5NQmcgUhAH_7Mvmezrhiv4Uropcg2sa_8W2YuLzNQXq0wOJ-LcrIpGbHHD6_xO-uea9l"/>
+</div>
+</div>
+<p class="text-xs font-medium text-slate-800 text-center truncate w-full">Goalie One</p>
+</div>
+</div>
+</section>
+<main class="flex flex-col gap-6 pb-24 pt-4">
+<article class="flex flex-col border-b border-divider pb-6">
+<div class="px-4 flex items-center justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="relative">
+<img alt="Marcus Rash profile" class="h-10 w-10 rounded-full object-cover ring-2 ring-slate-100" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArg34bM-NKhOFvhI_0_dPuDrI3nc-8cj5SbFP91P6Viugkm5Y3zhbB60BbO_DNJfY483GblqxYYdWnjSoiMGbDprshM15mDbNfu90yhTfTuQwlRSB-GFWYk_7Je_ICoWu_bkgEuV4F5n9OWU0QED5T7J5_9UtgDtVW7o_PKsyeVrmEhQloipX-EwvzSckvnPWtiEPyXapLP4xducdVkqv-9l_ne3cUBII6YUZb7htaB2hjgg4IyjMQJn6LNxqGmFTYHKKcsVgza7pw"/>
+<div class="absolute -bottom-1 -right-1 bg-slate-900 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-white">RW</div>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<h3 class="font-bold text-sm text-slate-900">Marcus Rash</h3>
+<span class="material-symbols-outlined text-blue-500 text-[16px] filled">verified</span>
+</div>
+<p class="text-xs text-slate-500">Manchester • Winger</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="relative w-full aspect-[4/5] bg-slate-100 overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Football player dribbling a ball on a green pitch during training" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBGMiNO3UUTeR4uThwPhkcDz0SBwA_e-gsJnVjjNAYAOld78ntKHKXcnvGVY6OihadnWEU3BFpHYKFrNhpoWDFwy8eN0oflJ47qgYMRH70wHcQ2Fg1gbO2htJhDC7aM1fedWTys0SRRDmIS6aQ3Z4jLRs6Vwbrh-X8JW9gz_MhGE7LZlNijHDTTIBZLqHuYOh8BEHMliSFakyaRyUEZHZQ3d8LRXffT8V3xZ8qzXoxqPR16AIMlfEKTqSj7_E86zwsB8TwGlRfpp867');"></div>
+<div class="absolute top-4 right-4 bg-black/60 backdrop-blur-md p-1.5 rounded-full cursor-pointer hover:bg-black/80 transition-colors">
+<span class="material-symbols-outlined text-white text-[20px]">volume_off</span>
+</div>
+<div class="absolute bottom-4 left-4 bg-accent text-slate-900 text-[10px] font-black tracking-wide px-2 py-1 rounded shadow-sm flex items-center gap-1">
+<span class="block h-1.5 w-1.5 rounded-full bg-red-600 animate-pulse"></span>
+                LIVE DRILL
+            </div>
+<div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/10">
+<span class="material-symbols-outlined text-white/90 text-7xl drop-shadow-xl scale-95 active:scale-90 transition-transform">play_circle</span>
+</div>
+</div>
+<div class="px-4 py-3 flex items-center justify-between">
+<div class="flex items-center gap-5">
+<button class="group flex items-center gap-1 text-slate-800">
+<span class="material-symbols-outlined text-[26px] group-hover:text-red-500 transition-colors">favorite</span>
+</button>
+<button class="group flex items-center gap-1 text-slate-800">
+<span class="material-symbols-outlined text-[26px] group-hover:text-blue-500 transition-colors">chat_bubble</span>
+</button>
+<button class="group flex items-center gap-1 text-slate-800">
+<span class="material-symbols-outlined text-[26px] group-hover:text-accent transition-colors">send</span>
+</button>
+</div>
+<button class="text-slate-800 hover:text-accent transition-colors">
+<span class="material-symbols-outlined text-[26px]">bookmark_border</span>
+</button>
+</div>
+<div class="px-4 flex flex-col gap-1">
+<p class="text-sm font-bold text-slate-900">1,245 likes</p>
+<div class="text-sm text-slate-700 leading-relaxed">
+<span class="font-bold text-slate-900 mr-1">Marcus Rash</span>
+                Working on the top bin finishes today. Consistency is key! ⚽️ <span class="text-blue-600 font-medium">#Training</span> <span class="text-blue-600 font-medium">#Focus</span> <span class="text-blue-600 font-medium">#NextGen</span>
+</div>
+<p class="text-[10px] font-medium text-slate-400 mt-1 uppercase tracking-wide">2 hours ago</p>
+</div>
+</article>
+<article class="flex flex-col border-b border-divider pb-6">
+<div class="px-4 flex items-center justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="relative">
+<img alt="Elite Scouting Agency profile" class="h-10 w-10 rounded-full object-cover ring-2 ring-accent" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVvAEjvtsRMjMOaQiLfBwdyhIpGNuT_6smT_6_6ePWY0WFrmmGvyUlDII40U5wPeok1dtR4ySWlvn1rGA9Gs4MRG0QQWjNB2vv6LwoJ8QTo7PsKACICwBDdyBocFjlLQ6eIyAbtLD0UdJ_MUi2CqGAf3AWfdJlkDHZeZxHtT_lmxHrPQDlBMP9OeaCcPWYJNlnQxItmekAxuLw0i0NN_ZcM4KqrhEuzxIaaeWlRPU8gp4lof9x4QZSfKgFiR6_51wpltanHt0dXBbY"/>
+<div class="absolute -bottom-1 -right-1 bg-accent text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full border border-white shadow-sm">SCOUT</div>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1">
+<h3 class="font-bold text-sm text-slate-900">Elite Scouting Agency</h3>
+<span class="material-symbols-outlined text-yellow-500 text-[16px] filled">star</span>
+</div>
+<p class="text-xs text-slate-500">London, UK • Agency</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="relative w-full aspect-video bg-slate-100 overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Wide shot of a football stadium with empty green seats" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC4O0TdspeENSQhcgoag3BXHwA_pAcGmny0VNtjpm9Om-Mz0oV9dReN7DCIanpFW-71TTuTR6Vefoq0J8VgvP_tWEOKlioJvTm4j5r_7htokufWHmhaHv1WS1_lcilxVkeoWkaLEWVYMJs-TML-1Y5xefEYsYtNKX39iPdEKFtqQnRWVl_KL_4slnrHchPl14SoL3ZMi9Atam10xh6SQ04U47lvil4Hv-6vTgg4aRKuf1GncKMnkOwIHulsvQwKKorl6d5JzRfLhreO');"></div>
+<div class="absolute bottom-4 right-4 bg-white/95 text-slate-900 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 border border-slate-100">
+<span class="material-symbols-outlined text-[16px] text-accent">person_search</span>
+                RECRUITING
+            </div>
+</div>
+<div class="px-4 py-3 flex items-center justify-between">
+<div class="flex items-center gap-5">
+<button class="group flex items-center gap-1 text-slate-800">
+<span class="material-symbols-outlined text-[26px] group-hover:text-red-500 transition-colors">favorite_border</span>
+</button>
+<button class="group flex items-center gap-1 text-slate-800">
+<span class="material-symbols-outlined text-[26px] group-hover:text-blue-500 transition-colors">chat_bubble</span>
+</button>
+<button class="group flex items-center gap-1 text-slate-800">
+<span class="material-symbols-outlined text-[26px] group-hover:text-accent transition-colors">send</span>
+</button>
+</div>
+<button class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-colors">
+                Apply Now
+            </button>
+</div>
+<div class="px-4 flex flex-col gap-1">
+<p class="text-sm font-bold text-slate-900">45 likes</p>
+<div class="text-sm text-slate-700 leading-relaxed">
+<span class="font-bold text-slate-900 mr-1">Elite Scouting Agency</span>
+                Looking for U18 midfielders for the upcoming regional showcase in London next month. Direct message for application details. 📩 <span class="text-blue-600 font-medium">#Scouting</span> <span class="text-blue-600 font-medium">#LondonFootball</span>
+</div>
+<p class="text-[10px] font-medium text-slate-400 mt-1 uppercase tracking-wide">5 hours ago</p>
+</div>
+</article>
+<div class="px-4 py-2">
+<div class="bg-slate-50 rounded-xl p-4 border border-slate-200 flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-3">
+<div class="h-12 w-12 rounded-full bg-slate-200 overflow-hidden ring-2 ring-white shadow-sm">
+<img alt="Agent Smith profile" class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAflUV3QkxE_RcGYJsDzBU5Vy-AHBXCM5g8h5G6hNYVxCqoYOgvgU-WTclr8xcKXyfPN3YuVDnw6IKA5dYHQQ7KsbycqKfJu8I89FP5yGFlduvjoTlu8_fIv92JTlPM3uU5wJM3AG0KiqPeDhhX1Kg_XwVfTxoWt3QGhTRFfE5-GuVsyX7ddZDXwnX2b6elis9dpX-P7yQ4aAEdr66cnjLUHYoG-uyjh0JJib0ILJyzxZABlW61mC37gNQwokerwjzoUCNY1Wkxd9eR"/>
+</div>
+<div>
+<h4 class="text-sm font-bold text-slate-900">James Smith</h4>
+<p class="text-xs text-slate-500">FIFA Licensed Agent</p>
+<p class="text-[10px] text-blue-600 font-medium mt-0.5">Suggested for you</p>
+</div>
+</div>
+<button class="bg-accent hover:bg-[#32e013] text-slate-900 text-xs font-bold py-2 px-3.5 rounded-lg transition-colors flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">person_add</span>
+                Connect
+            </button>
+</div>
+</div>
+</main>
+<nav class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 px-2 pb-6 pt-3 z-50">
+<div class="flex justify-around items-end">
+<a class="flex flex-col items-center justify-end gap-1 flex-1 group" href="#">
+<div class="relative p-1">
+<span class="material-symbols-outlined text-slate-900 text-[26px]">home</span>
+<span class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-accent rounded-full shadow-sm"></span>
+</div>
+<p class="text-[10px] font-bold text-slate-900">Feed</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-1 flex-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-slate-600 transition-colors text-[26px]">search</span>
+<p class="text-[10px] font-medium text-slate-400 group-hover:text-slate-600 transition-colors">Discover</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-1 flex-1 group -mt-8" href="#">
+<div class="bg-slate-900 h-12 w-12 rounded-full flex items-center justify-center shadow-lg ring-4 ring-white transform group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-accent text-[28px]">add</span>
+</div>
+<p class="text-[10px] font-medium text-slate-400 group-hover:text-slate-600 transition-colors">Upload</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-1 flex-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-slate-600 transition-colors text-[26px]">group</span>
+<p class="text-[10px] font-medium text-slate-400 group-hover:text-slate-600 transition-colors">Network</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-1 flex-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-slate-600 transition-colors text-[26px]">person</span>
+<p class="text-[10px] font-medium text-slate-400 group-hover:text-slate-600 transition-colors">Profile</p>
+</a>
+</div>
+</nav>
+
+</body></html>

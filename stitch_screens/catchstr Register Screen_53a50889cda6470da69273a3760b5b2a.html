@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#59f20d",
+                        "background-light": "#f6f8f5",
+                        "background-dark": "#162210",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>catchstr Register</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden max-w-[480px] mx-auto bg-background-light dark:bg-background-dark">
+<!-- Header / Top Bar -->
+<div class="flex items-center p-4 pb-2 justify-between">
+<div class="text-slate-900 dark:text-slate-100 flex size-10 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Create Account</h2>
+</div>
+<!-- Hero Text -->
+<div class="px-4 pt-8 pb-4">
+<h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-[36px] font-bold leading-tight">Join catchstr</h1>
+<p class="text-slate-600 dark:text-slate-400 text-base font-normal leading-normal mt-2">The football networking platform for players and agents.</p>
+</div>
+<!-- Registration Form -->
+<div class="flex flex-col gap-4 px-4 py-3">
+<!-- Full Name -->
+<label class="flex flex-col">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal pb-2">Full Name</p>
+<input class="form-input flex w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary h-14 placeholder:text-slate-400 p-[15px] text-base font-normal" placeholder="Cristiano Ronaldo" type="text"/>
+</label>
+<!-- Email -->
+<label class="flex flex-col">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal pb-2">Email</p>
+<input class="form-input flex w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary h-14 placeholder:text-slate-400 p-[15px] text-base font-normal" placeholder="name@example.com" type="email"/>
+</label>
+<!-- Role Selector (Segmented Control) -->
+<div class="flex flex-col mt-2">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal pb-3">I am a...</p>
+<div class="flex p-1 bg-slate-200/50 dark:bg-slate-800 rounded-xl h-14">
+<button class="flex-1 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg font-semibold shadow-sm text-sm">Player</button>
+<button class="flex-1 text-slate-500 dark:text-slate-400 font-medium text-sm">Agent</button>
+</div>
+</div>
+<!-- Password -->
+<label class="flex flex-col">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal pb-2">Password</p>
+<div class="relative">
+<input class="form-input flex w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary h-14 placeholder:text-slate-400 p-[15px] text-base font-normal" placeholder="••••••••" type="password"/>
+<span class="material-symbols-outlined absolute right-4 top-4 text-slate-400">visibility</span>
+</div>
+</label>
+<!-- Confirm Password -->
+<label class="flex flex-col">
+<p class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal pb-2">Confirm Password</p>
+<input class="form-input flex w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary h-14 placeholder:text-slate-400 p-[15px] text-base font-normal" placeholder="••••••••" type="password"/>
+</label>
+<!-- Terms Agreement -->
+<div class="flex items-center gap-3 py-2">
+<input class="h-5 w-5 rounded border-slate-300 text-primary focus:ring-primary" id="terms" type="checkbox"/>
+<label class="text-sm text-slate-600 dark:text-slate-400 leading-tight" for="terms">
+                    I agree to the <span class="text-slate-900 dark:text-slate-200 font-semibold underline">Terms of Service</span> and <span class="text-slate-900 dark:text-slate-200 font-semibold underline">Privacy Policy</span>.
+                </label>
+</div>
+<!-- Primary Action Button -->
+<div class="pt-4">
+<button class="flex w-full items-center justify-center rounded-xl bg-primary h-14 text-slate-900 font-bold text-lg shadow-lg active:scale-[0.98] transition-transform">
+                    Create Account
+                </button>
+</div>
+<!-- Login Link -->
+<div class="flex justify-center py-6">
+<p class="text-slate-600 dark:text-slate-400 text-sm">
+                    Already have an account? 
+                    <a class="text-slate-900 dark:text-slate-100 font-bold ml-1 hover:underline" href="#">Login</a>
+</p>
+</div>
+</div>
+<!-- Branding Footer Element -->
+<div class="mt-auto flex justify-center pb-8 opacity-20 grayscale">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-900 text-lg font-bold">sports_soccer</span>
+</div>
+<span class="font-bold text-xl tracking-tighter">catchstr</span>
+</div>
+</div>
+</div>
+</body></html>

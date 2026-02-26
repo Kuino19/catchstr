@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>catchstr Light Profile</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#277bf1",
+                        "accent-green": "#34d399",
+                        "light-grey": "#f3f4f6",
+                        "text-main": "#111827",
+                        "text-secondary": "#6b7280",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem", 
+                        "lg": "0.5rem", 
+                        "xl": "0.75rem", 
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+             min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-white font-display text-text-main overflow-x-hidden min-h-screen pb-20">
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-slate-100">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[24px]">arrow_back_ios</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight text-text-main">catchstr</h1>
+<div class="flex items-center gap-4">
+<button class="text-text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[26px]">more_horiz</span>
+</button>
+</div>
+</header>
+<section class="px-4 pt-6 pb-2">
+<div class="flex flex-col items-center">
+<div class="relative mb-4">
+<div class="h-28 w-28 rounded-full p-1 bg-white shadow-lg border border-slate-100">
+<img alt="Player Profile" class="h-full w-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArg34bM-NKhOFvhI_0_dPuDrI3nc-8cj5SbFP91P6Viugkm5Y3zhbB60BbO_DNJfY483GblqxYYdWnjSoiMGbDprshM15mDbNfu90yhTfTuQwlRSB-GFWYk_7Je_ICoWu_bkgEuV4F5n9OWU0QED5T7J5_9UtgDtVW7o_PKsyeVrmEhQloipX-EwvzSckvnPWtiEPyXapLP4xducdVkqv-9l_ne3cUBII6YUZb7htaB2hjgg4IyjMQJn6LNxqGmFTYHKKcsVgza7pw"/>
+</div>
+<div class="absolute bottom-1 right-1 bg-accent-green text-white h-7 w-7 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+</div>
+<h2 class="text-2xl font-bold text-text-main mb-1">Marcus Rash</h2>
+<div class="flex items-center gap-2 text-sm text-text-secondary mb-4">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">location_on</span> Manchester, UK</span>
+<span class="h-1 w-1 bg-slate-300 rounded-full"></span>
+<span>Winger (RW)</span>
+<span class="h-1 w-1 bg-slate-300 rounded-full"></span>
+<span>Age 21</span>
+</div>
+<p class="text-center text-sm text-text-secondary max-w-xs mb-6 leading-relaxed">
+                Explosive winger with an eye for goal. Currently playing for U21 Manchester Academy. Looking for agency representation.
+            </p>
+<div class="flex items-center justify-center gap-3 w-full max-w-sm mb-8">
+<button class="flex-1 bg-primary text-white font-semibold py-3 px-6 rounded-xl shadow-md shadow-blue-500/20 hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">mail</span>
+                    Message Agent
+                </button>
+<button class="flex-1 bg-white text-text-main font-semibold py-3 px-6 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2">
+                    Follow
+                </button>
+</div>
+</div>
+</section>
+<section class="px-4 mb-8">
+<div class="grid grid-cols-3 gap-3">
+<div class="bg-light-grey rounded-2xl p-3 flex flex-col items-center justify-center text-center py-4 border border-slate-100">
+<span class="text-2xl font-bold text-black mb-1">14</span>
+<span class="text-[10px] uppercase font-bold text-accent-green tracking-wider">Goals</span>
+</div>
+<div class="bg-light-grey rounded-2xl p-3 flex flex-col items-center justify-center text-center py-4 border border-slate-100">
+<span class="text-2xl font-bold text-black mb-1">8</span>
+<span class="text-[10px] uppercase font-bold text-accent-green tracking-wider">Assists</span>
+</div>
+<div class="bg-light-grey rounded-2xl p-3 flex flex-col items-center justify-center text-center py-4 border border-slate-100">
+<span class="text-2xl font-bold text-black mb-1">24</span>
+<span class="text-[10px] uppercase font-bold text-accent-green tracking-wider">Apps</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-3 mt-3">
+<div class="bg-light-grey rounded-2xl p-3 px-4 flex items-center justify-between border border-slate-100">
+<span class="text-xs font-semibold text-slate-500">Pace</span>
+<span class="text-lg font-bold text-black">92</span>
+</div>
+<div class="bg-light-grey rounded-2xl p-3 px-4 flex items-center justify-between border border-slate-100">
+<span class="text-xs font-semibold text-slate-500">Shooting</span>
+<span class="text-lg font-bold text-black">88</span>
+</div>
+</div>
+</section>
+<section class="border-b border-slate-100 mb-1 sticky top-[60px] bg-white/95 backdrop-blur-sm z-40">
+<div class="flex justify-around">
+<button class="pb-3 border-b-2 border-black px-4 flex items-center gap-2 text-text-main font-medium">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+<span>Highlights</span>
+</button>
+<button class="pb-3 border-b-2 border-transparent px-4 flex items-center gap-2 text-text-secondary font-medium hover:text-text-main transition-colors">
+<span class="material-symbols-outlined text-[20px]">assignment</span>
+<span>CV</span>
+</button>
+<button class="pb-3 border-b-2 border-transparent px-4 flex items-center gap-2 text-text-secondary font-medium hover:text-text-main transition-colors">
+<span class="material-symbols-outlined text-[20px]">bookmark</span>
+<span>Saved</span>
+</button>
+</div>
+</section>
+<section class="px-0.5">
+<div class="grid grid-cols-3 gap-0.5">
+<div class="relative aspect-[4/5] bg-slate-100 group cursor-pointer">
+<img alt="Dribbling Drill" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGMiNO3UUTeR4uThwPhkcDz0SBwA_e-gsJnVjjNAYAOld78ntKHKXcnvGVY6OihadnWEU3BFpHYKFrNhpoWDFwy8eN0oflJ47qgYMRH70wHcQ2Fg1gbO2htJhDC7aM1fedWTys0SRRDmIS6aQ3Z4jLRs6Vwbrh-X8JW9gz_MhGE7LZlNijHDTTIBZLqHuYOh8BEHMliSFakyaRyUEZHZQ3d8LRXffT8V3xZ8qzXoxqPR16AIMlfEKTqSj7_E86zwsB8TwGlRfpp867"/>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+<div class="absolute top-2 right-2">
+<span class="material-symbols-outlined text-white drop-shadow-md text-[18px] filled">play_arrow</span>
+</div>
+<div class="absolute bottom-2 left-2">
+<span class="text-[10px] font-bold text-white bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">12k</span>
+</div>
+</div>
+<div class="relative aspect-[4/5] bg-slate-100 group cursor-pointer">
+<img alt="Stadium Goal" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4O0TdspeENSQhcgoag3BXHwA_pAcGmny0VNtjpm9Om-Mz0oV9dReN7DCIanpFW-71TTuTR6Vefoq0J8VgvP_tWEOKlioJvTm4j5r_7htokufWHmhaHv1WS1_lcilxVkeoWkaLEWVYMJs-TML-1Y5xefEYsYtNKX39iPdEKFtqQnRWVl_KL_4slnrHchPl14SoL3ZMi9Atam10xh6SQ04U47lvil4Hv-6vTgg4aRKuf1GncKMnkOwIHulsvQwKKorl6d5JzRfLhreO"/>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+<div class="absolute top-2 right-2">
+<span class="material-symbols-outlined text-white drop-shadow-md text-[18px] filled">play_arrow</span>
+</div>
+<div class="absolute bottom-2 left-2">
+<span class="text-[10px] font-bold text-white bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">8.5k</span>
+</div>
+</div>
+<div class="relative aspect-[4/5] bg-slate-100 group cursor-pointer">
+<img alt="Training Session" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGqViCeBWH0mv5fWuHgw71kTNN1nVZivnka1SAEoBAZ-iJqVmA6cjDRH-jqq4nnAXdSVESco2NuWaFkzAbnLrWUlprUgmmQ75QysWNzOiW9v4Ik9N3AcNb6GtFg8sTj0HvEtpQLIBEPEqqBu8xFdAgKseQ7QfX1fHJ6QmkCJHNVu4QEhAffENLV0GO66GC3kZO_wcQT6kV5NQmcgUhAH_7Mvmezrhiv4Uropcg2sa_8W2YuLzNQXq0wOJ-LcrIpGbHHD6_xO-uea9l"/>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+<div class="absolute top-2 right-2">
+<span class="material-symbols-outlined text-white drop-shadow-md text-[18px] filled">play_arrow</span>
+</div>
+<div class="absolute bottom-2 left-2">
+<span class="text-[10px] font-bold text-white bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">22k</span>
+</div>
+</div>
+<div class="relative aspect-[4/5] bg-slate-100 group cursor-pointer">
+<img alt="Match Day" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDydqxRjLssGlphKhRRGVPzMt6hsObo8nKZ_v4e7bcgMsAIpu_enUsNHmifNgzYUWKBxZPKhBaYBUDuncKSiTt1s7eiU4vrIdvwBcY4YZuvas9ikaALhlp_OqwbOBd0hF8PAy9peU7QX82pEvjpgeHOrdBueSIzo6sgTQUwe2yVU5B5eBX2Y6ocp0M-BZoqrff0X_aUYGCvw1O5t6bXANgcrapvr0Szs6T92T5WclAHwNWgwik9i0sN82-RWFET8FFELFHxyeTnMyyF"/>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+<div class="absolute top-2 right-2">
+<span class="material-symbols-outlined text-white drop-shadow-md text-[18px] filled">play_arrow</span>
+</div>
+<div class="absolute bottom-2 left-2">
+<span class="text-[10px] font-bold text-white bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">45k</span>
+</div>
+</div>
+<div class="relative aspect-[4/5] bg-slate-100 group cursor-pointer">
+<img alt="Fitness Test" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBgnJAoBD7DKwEImiG31M9baKqHAs3cGr22thUQVNhrqIHEce8b_dLQklPsDZYta70MfMifaSvy1se6jL29nuKTe6sh5_sqHXx3hOyvpTZuQwG5hc1H-yeiMK1A9HkjmGbG72ny3U_vqszH8kAMwVNNMV1QMHh7w_HNhNX9O63QWZJ1k7z6UR7qkvAzbM2RKIO8pYz14btIV5Cbr6Hn_46Cbm6V6-zwswCggqMc_E_mzOiedYseJ6Pg8L9fTz626kq08Cl1Ee062hb"/>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+<div class="absolute top-2 right-2">
+<span class="material-symbols-outlined text-white drop-shadow-md text-[18px] filled">play_arrow</span>
+</div>
+<div class="absolute bottom-2 left-2">
+<span class="text-[10px] font-bold text-white bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">1.2k</span>
+</div>
+</div>
+<div class="relative aspect-[4/5] bg-slate-100 group cursor-pointer">
+<img alt="Keeper drills" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrjOp-3r6pQbnbwpViUyBBBTVPnlbYiOCx_bBnRBAAEswdKdHwHfkSy3eHJLRIuY9khGKiU84Vb6e9MzOEOHNlKhurXEjlW29e83oDn6tmszHicUx5PmbKQ80me8DLj88eotH5NcyVKbcc5x5XwIRjbqIypi4d9UrPi6MsCPJZsIY83p_fNH-EnvCRqUeKHAB_c_CMTAy9iZ6L1b1BV6_-nois4zJDyOg6_nJhpMYWYFbRw30pFrIcUm4P45uADhtwizBRnIAOqgP6"/>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+<div class="absolute top-2 right-2">
+<span class="material-symbols-outlined text-white drop-shadow-md text-[18px] filled">play_arrow</span>
+</div>
+<div class="absolute bottom-2 left-2">
+<span class="text-[10px] font-bold text-white bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">900</span>
+</div>
+</div>
+<div class="relative aspect-[4/5] bg-slate-100 group cursor-pointer">
+<img alt="Tactics board" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBbr3XcvAd8or9lJF4ooX8XQBOW0JjqmlrVTmKyBnZnjTOO_nNsp43qGkKoo3UNlBWkFX8A_-pRnBPhiSGRDYA-NlgEExWCYlV0JUPQ48pXBW5kTmIbTD7MljNJ-b8l02jnRyX8c7o_FOYoxdRXX03j-HEn0zDSp-hPZCTyoLVurpQBOTvbhXP-kOHdihHbwI-HpXrfrf6Qj-1HGDaCI4S_gtEeVmZdG5xnG0VnSgqj3EicBU05Oqcpd5_9HfGSEn75cwKyjt4UVsW"/>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+<div class="absolute top-2 right-2">
+<span class="material-symbols-outlined text-white drop-shadow-md text-[18px]">collections</span>
+</div>
+</div>
+<div class="relative aspect-[4/5] bg-slate-100 group cursor-pointer">
+<img alt="Award Ceremony" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCq1KHcL268qtE9K4S6cE2_VtmjdSwJItjbofhrgWrsyVU4-eBUDOJqd05xm-KGC1IHsguGzvchUvz8aGOvgTSA2hDdSDVZImUmKRDtHYyB7H9F6TH9xsN3QoaTfURdky7HP5061c_5pTjWLQ1IxLav3Vn6F2J9GEwdO5aw16WnI-a115uRRWI-IqyaXPafLjijxVONfy8M1QCEuIG-iO_K6u1uf6RvgRII4_4-9olCx_OjK0JJZXHNgYR7x--MPQH2dOZ8YsMalMQo"/>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+<div class="absolute top-2 right-2">
+<span class="material-symbols-outlined text-white drop-shadow-md text-[18px]">collections</span>
+</div>
+</div>
+<div class="relative aspect-[4/5] bg-slate-100 group cursor-pointer">
+<img alt="Scout Meeting" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVvAEjvtsRMjMOaQiLfBwdyhIpGNuT_6smT_6_6ePWY0WFrmmGvyUlDII40U5wPeok1dtR4ySWlvn1rGA9Gs4MRG0QQWjNB2vv6LwoJ8QTo7PsKACICwBDdyBocFjlLQ6eIyAbtLD0UdJ_MUi2CqGAf3AWfdJlkDHZeZxHtT_lmxHrPQDlBMP9OeaCcPWYJNlnQxItmekAxuLw0i0NN_ZcM4KqrhEuzxIaaeWlRPU8gp4lof9x4QZSfKgFiR6_51wpltanHt0dXBbY"/>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+<div class="absolute top-2 right-2">
+<span class="material-symbols-outlined text-white drop-shadow-md text-[18px] filled">play_arrow</span>
+</div>
+</div>
+</div>
+</section>
+<nav class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 px-2 pb-5 pt-3 z-50">
+<div class="flex justify-around items-end">
+<a class="flex flex-col items-center justify-end gap-1 flex-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-[26px]">home</span>
+<p class="text-[10px] font-medium text-slate-400 group-hover:text-primary transition-colors">Feed</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-1 flex-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-[26px]">search</span>
+<p class="text-[10px] font-medium text-slate-400 group-hover:text-primary transition-colors">Discover</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-1 flex-1 group -mt-6" href="#">
+<div class="bg-primary h-12 w-12 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 ring-4 ring-white transform group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-white text-[28px]">add</span>
+</div>
+<p class="text-[10px] font-medium text-slate-400 group-hover:text-primary transition-colors">Upload</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-1 flex-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-[26px]">group</span>
+<p class="text-[10px] font-medium text-slate-400 group-hover:text-primary transition-colors">Network</p>
+</a>
+<a class="flex flex-col items-center justify-end gap-1 flex-1 group" href="#">
+<span class="material-symbols-outlined text-primary transition-colors text-[26px] filled">person</span>
+<p class="text-[10px] font-medium text-primary transition-colors">Profile</p>
+</a>
+</div>
+</nav>
+
+</body></html>

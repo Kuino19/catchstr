@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CatchStr</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Theme Config -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#277bf1",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101722",
+                        "surface-dark": "#1a2536", // Added based on chat screen
+                        "surface-light": "#ffffff",
+                        "text-main": "#e2e8f0",
+                        "text-muted": "#94a3b8",
+                        "pitch-green": "#34d399",
+                        "accent": "#39FF14", // Consolidated accent
+                        "accent-green": "#39FF14",
+                        "accent-dark": "#059669",
+                        "light-grey": "#f3f4f6",
+                        "card-dark": "#192434",
+                        "input-dark": "#233248",
+                        "text-secondary": "#91a9ca",
+                        "divider": "#f1f3f5",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem", 
+                        "lg": "0.5rem", 
+                        "xl": "0.75rem", 
+                        "2xl": "1rem",
+                        "3xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        'neon': '0 0 10px rgba(52, 211, 153, 0.5)',
+                        "subtle": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+                        "card": "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)"
+                    }
+                },
+            },
+        }
+    </script>
+
+    <!-- React Dependencies -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/history@5/umd/history.development.js"></script>
+    <script src="https://unpkg.com/react-router@6.3.0/umd/react-router.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Lexend', sans-serif;
+            min-height: max(884px, 100dvh);
+            overscroll-behavior-y: none;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .filled {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white overflow-x-hidden min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createRoot } = ReactDOM;
+        const { MemoryRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
+
+        // --- Shared Components ---
+
+        const ThemeToggle = () => {
+            const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
+
+            const toggleTheme = () => {
+                const html = document.documentElement;
+                if (html.classList.contains('dark')) {
+                    html.classList.remove('dark');
+                    setIsDark(false);
+                } else {
+                    html.classList.add('dark');
+                    setIsDark(true);
+                }
+            };
+
+            return (
+                <button 
+                    onClick={toggleTheme} 
+                    className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    aria-label="Toggle Theme"
+                >
+                    <span className="material-symbols-outlined text-[24px]">
+                        {isDark ? 'light_mode' : 'dark_mode'}
+                    </span>
+                </button>
+            );
+        };
+
+        const BottomNav = ({ active }) => {
+            const navigate = useNavigate();
+            const navItems = [
+                { id: 'feed', icon: 'home', label: 'Feed', path: '/' },
+                { id: 'discover', icon: 'search', label: 'Discover', path: '/discover' },
+                { id: 'upload', icon: 'add', label: 'Upload', path: '/create', isSpecial: true },
+                { id: 'network', icon: 'group', label: 'Network', path: '/chat' },
+                { id: 'profile', icon: 'person', label: 'Profile', path: '/profile' },
+            ];
+
+            // Some screens use a slightly different bottom nav style, trying to normalize to a main one for the 'App' feel
+            // but keeping the visual distinctness if possible via conditional classes if needed.
+            // For this prototype, we'll use a unified dark/light compatible nav.
+
+            return (
+                <nav className="fixed bottom-0 left-0 w-full bg-[#192434] dark:bg-[#192434] border-t border-[#233248] px-2 pb-5 pt-2 z-50">
+                    <div className="flex justify-around items-end">
+                        {navItems.map((item) => {
+                            const isActive = active === item.id;
+                            
+                            if (item.isSpecial) {
+                                return (
+                                    <Link key={item.id} to={item.path} className="flex flex-col items-center justify-end gap-1 flex-1 group -mt-6">
+                                        <div className="bg-primary h-12 w-12 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 ring-4 ring-[#192434] transform group-hover:scale-105 transition-transform">
+                                            <span className="material-symbols-outlined text-white text-[28px]">{item.icon}</span>
+                                        </div>
+                                        <p className={`text-[10px] font-medium transition-colors ${isActive ? 'text-white' : 'text-[#91a9ca] group-hover:text-white'}`}>{item.label}</p>
+                                    </Link>
+                                )
+                            }
+
+                            return (
+                                <Link key={item.id} to={item.path} className="flex flex-col items-center justify-end gap-1 flex-1 group">
+                                    <div className="relative p-1">
+                                        <span className={`material-symbols-outlined text-[26px] transition-colors ${isActive ? 'text-white filled' : 'text-[#91a9ca] group-hover:text-white'}`}>{item.icon}</span>
+                                        {isActive && <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"></span>}
+                                    </div>
+                                    <p className={`text-[10px] font-medium transition-colors ${isActive ? 'text-white' : 'text-[#91a9ca] group-hover:text-white'}`}>{item.label}</p>
+                                </Link>
+                            )
+                        })}
+                    </div>
+                </nav>
+            );
+        };
+
+        // --- Screens ---
+
+        // Screen 1: Main Feed
+        const ScreenFeed = () => {
+            return (
+                <div className="bg-background-light dark:bg-background-dark min-h-screen pb-20">
+                    {/* Header */}
+                    <header className="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between">
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">CatchStr</h1>
+                        <div className="flex items-center gap-2">
+                            <ThemeToggle />
+                            <button className="relative text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors p-2">
+                                <span className="material-symbols-outlined text-[26px]">notifications</span>
+                                <span className="absolute top-1 right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background-light dark:ring-background-dark"></span>
+                            </button>
+                            <button className="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors p-2">
+                                <span className="material-symbols-outlined text-[26px] -rotate-45 relative top-[-2px]">send</span>
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Stories Rail */}
+                    <section className="py-4 border-b border-slate-200 dark:border-slate-800/50">
+                        <div className="flex gap-4 overflow-x-auto px-4 no-scrollbar">
+                            {/* Add Story */}
+                            <div className="flex flex-col items-center gap-1.5 min-w-[72px] cursor-pointer group">
+                                <div className="relative h-[72px] w-[72px] rounded-full p-[2px] border-2 border-slate-300 dark:border-slate-700 border-dashed">
+                                    <div className="h-full w-full rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+                                        <img alt="My Profile Picture" className="h-full w-full object-cover opacity-60" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCq1KHcL268qtE9K4S6cE2_VtmjdSwJItjbofhrgWrsyVU4-eBUDOJqd05xm-KGC1IHsguGzvchUvz8aGOvgTSA2hDdSDVZImUmKRDtHYyB7H9F6TH9xsN3QoaTfURdky7HP5061c_5pTjWLQ1IxLav3Vn6F2J9GEwdO5aw16WnI-a115uRRWI-IqyaXPafLjijxVONfy8M1QCEuIG-iO_K6u1uf6RvgRII4_4-9olCx_OjK0JJZXHNgYR7x--MPQH2dOZ8YsMalMQo"/>
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                            <span className="material-symbols-outlined text-white drop-shadow-md">add</span>
+                                        </div>
+                                    </div>
+                                    <div className="absolute bottom-0 right-0 bg-primary h-6 w-6 rounded-full flex items-center justify-center border-2 border-background-light dark:border-background-dark">
+                                        <span className="material-symbols-outlined text-white text-[14px]">add</span>
+                                    </div>
+                                </div>
+                                <p className="text-xs font-medium text-slate-600 dark:text-slate-400 text-center truncate w-full">My Story</p>
+                            </div>
+                            {/* Story Items */}
+                            {['Coach Mike', 'FC Scout', 'Pro Keeper', 'Striker Ace', 'Goalie One'].map((name, i) => (
+                                <div key={i} className="flex flex-col items-center gap-1.5 min-w-[72px] cursor-pointer">
+                                    <div className={`h-[72px] w-[72px] rounded-full p-[2px] ${name === 'Pro Keeper' ? 'bg-slate-300 dark:bg-slate-700' : 'bg-gradient-to-tr from-primary via-blue-400 to-pitch-green'}`}>
+                                        <div className="h-full w-full rounded-full bg-background-light dark:bg-background-dark p-[2px]">
+                                            <img alt={`${name} profile`} className={`h-full w-full rounded-full object-cover ${name === 'Pro Keeper' ? 'grayscale' : ''}`} src={[
+                                                "https://lh3.googleusercontent.com/aida-public/AB6AXuBBgnJAoBD7DKwEImiG31M9baKqHAs3cGr22thUQVNhrqIHEce8b_dLQklPsDZYta70MfMifaSvy1se6jL29nuKTe6sh5_sqHXx3hOyvpTZuQwG5hc1H-yeiMK1A9HkjmGbG72ny3U_vqszH8kAMwVNNMV1QMHh7w_HNhNX9O63QWZJ1k7z6UR7qkvAzbM2RKIO8pYz14btIV5Cbr6Hn_46Cbm6V6-zwswCggqMc_E_mzOiedYseJ6Pg8L9fTz626kq08Cl1Ee062hb",
+                                                "https://lh3.googleusercontent.com/aida-public/AB6AXuBBbr3XcvAd8or9lJF4ooX8XQBOW0JjqmlrVTmKyBnZnjTOO_nNsp43qGkKoo3UNlBWkFX8A_-pRnBPhiSGRDYA-NlgEExWCYlV0JUPQ48pXBW5kTmIbTD7MljNJ-b8l02jnRyX8c7o_FOYoxdRXX03j-HEn0zDSp-hPZCTyoLVurpQBOTvbhXP-kOHdihHbwI-HpXrfrf6Qj-1HGDaCI4S_gtEeVmZdG5xnG0VnSgqj3EicBU05Oqcpd5_9HfGSEn75cwKyjt4UVsW",
+                                                "https://lh3.googleusercontent.com/aida-public/AB6AXuBrjOp-3r6pQbnbwpViUyBBBTVPnlbYiOCx_bBnRBAAEswdKdHwHfkSy3eHJLRIuY9khGKiU84Vb6e9MzOEOHNlKhurXEjlW29e83oDn6tmszHicUx5PmbKQ80me8DLj88eotH5NcyVKbcc5x5XwIRjbqIypi4d9UrPi6MsCPJZsIY83p_fNH-EnvCRqUeKHAB_c_CMTAy9iZ6L1b1BV6_-nois4zJDyOg6_nJhpMYWYFbRw30pFrIcUm4P45uADhtwizBRnIAOqgP6",
+                                                "https://lh3.googleusercontent.com/aida-public/AB6AXuDydqxRjLssGlphKhRRGVPzMt6hsObo8nKZ_v4e7bcgMsAIpu_enUsNHmifNgzYUWKBxZPKhBaYBUDuncKSiTt1s7eiU4vrIdvwBcY4YZuvas9ikaALhlp_OqwbOBd0hF8PAy9peU7QX82pEvjpgeHOrdBueSIzo6sgTQUwe2yVU5B5eBX2Y6ocp0M-BZoqrff0X_aUYGCvw1O5t6bXANgcrapvr0Szs6T92T5WclAHwNWgwik9i0sN82-RWFET8FFELFHxyeTnMyyF",
+                                                "https://lh3.googleusercontent.com/aida-public/AB6AXuCGqViCeBWH0mv5fWuHgw71kTNN1nVZivnka1SAEoBAZ-iJqVmA6cjDRH-jqq4nnAXdSVESco2NuWaFkzAbnLrWUlprUgmmQ75QysWNzOiW9v4Ik9N3AcNb6GtFg8sTj0HvEtpQLIBEPEqqBu8xFdAgKseQ7QfX1fHJ6QmkCJHNVu4QEhAffENLV0GO66GC3kZO_wcQT6kV5NQmcgUhAH_7Mvmezrhiv4Uropcg2sa_8W2YuLzNQXq0wOJ-LcrIpGbHHD6_xO-uea9l"
+                                            ][i]}/>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs font-medium text-slate-900 dark:text-slate-200 text-center truncate w-full">{name}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Main Feed */}
+                    <main className="flex flex-col gap-6 pt-4">
+                        {/* Post 1: Video Highlight */}
+                        <article className="flex flex-col border-b border-slate-200 dark:border-slate-800 pb-4">
+                            <div className="px-4 flex items-center justify-between mb-3">
+                                <Link to="/profile/marcus" className="flex items-center gap-3">
+                                    <div className="relative">
+                                        <img alt="Marcus Rash profile" className="h-10 w-10 rounded-full object-cover ring-2 ring-slate-100 dark:ring-slate-800" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArg34bM-NKhOFvhI_0_dPuDrI3nc-8cj5SbFP91P6Viugkm5Y3zhbB60BbO_DNJfY483GblqxYYdWnjSoiMGbDprshM15mDbNfu90yhTfTuQwlRSB-GFWYk_7Je_ICoWu_bkgEuV4F5n9OWU0QED5T7J5_9UtgDtVW7o_PKsyeVrmEhQloipX-EwvzSckvnPWtiEPyXapLP4xducdVkqv-9l_ne3cUBII6YUZb7htaB2hjgg4IyjMQJn6LNxqGmFTYHKKcsVgza7pw"/>
+                                        <div className="absolute -bottom-1 -right-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-background-dark">RW</div>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center gap-1.5">
+                                            <h3 className="font-bold text-sm text-slate-900 dark:text-white">Marcus Rash</h3>
+                                            <span className="material-symbols-outlined text-blue-400 text-[14px] filled">verified</span>
+                                        </div>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Manchester • Winger</p>
+                                    </div>
+                                </Link>
+                                <button className="text-slate-400 hover:text-white transition-colors">
+                                    <span className="material-symbols-outlined">more_horiz</span>
+                                </button>
+                            </div>
+                            <div className="relative w-full aspect-[4/5] bg-slate-900 overflow-hidden">
+                                <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBGMiNO3UUTeR4uThwPhkcDz0SBwA_e-gsJnVjjNAYAOld78ntKHKXcnvGVY6OihadnWEU3BFpHYKFrNhpoWDFwy8eN0oflJ47qgYMRH70wHcQ2Fg1gbO2htJhDC7aM1fedWTys0SRRDmIS6aQ3Z4jLRs6Vwbrh-X8JW9gz_MhGE7LZlNijHDTTIBZLqHuYOh8BEHMliSFakyaRyUEZHZQ3d8LRXffT8V3xZ8qzXoxqPR16AIMlfEKTqSj7_E86zwsB8TwGlRfpp867')"}}></div>
+                                <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-sm p-1.5 rounded-full cursor-pointer">
+                                    <span className="material-symbols-outlined text-white text-[20px]">volume_off</span>
+                                </div>
+                                <div className="absolute bottom-4 left-4 bg-pitch-green/90 text-slate-900 text-xs font-bold px-2 py-1 rounded">LIVE DRILL</div>
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
+                                    <span className="material-symbols-outlined text-white text-6xl drop-shadow-lg">play_circle</span>
+                                </div>
+                            </div>
+                            <div className="px-4 py-3 flex items-center justify-between">
+                                <div className="flex items-center gap-5">
+                                    <button className="group flex items-center gap-1 text-slate-900 dark:text-white">
+                                        <span className="material-symbols-outlined text-[26px] group-hover:text-red-500 transition-colors">favorite</span>
+                                    </button>
+                                    <button className="group flex items-center gap-1 text-slate-900 dark:text-white">
+                                        <span className="material-symbols-outlined text-[26px] group-hover:text-primary transition-colors">chat_bubble</span>
+                                    </button>
+                                    <button className="group flex items-center gap-1 text-slate-900 dark:text-white">
+                                        <span className="material-symbols-outlined text-[26px] group-hover:text-primary transition-colors">send</span>
+                                    </button>
+                                </div>
+                                <button className="text-slate-900 dark:text-white hover:text-primary transition-colors">
+                                    <span className="material-symbols-outlined text-[26px]">bookmark_border</span>
+                                </button>
+                            </div>
+                            <div className="px-4 flex flex-col gap-1">
+                                <p className="text-sm font-bold text-slate-900 dark:text-white">1,245 likes</p>
+                                <div className="text-sm text-slate-600 dark:text-slate-300">
+                                    <span className="font-bold text-slate-900 dark:text-white mr-1">Marcus Rash</span>
+                                    Working on the top bin finishes today. Consistency is key! ⚽️ <span className="text-primary dark:text-pitch-green">#Training</span> <span className="text-primary dark:text-pitch-green">#Focus</span> <span className="text-primary dark:text-pitch-green">#NextGen</span>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-1 uppercase">2 hours ago</p>
+                            </div>
+                        </article>
+
+                        {/* Post 2: Scout Post */}
+                        <article className="flex flex-col border-b border-slate-200 dark:border-slate-800 pb-4">
+                            <div className="px-4 flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="relative">
+                                        <img alt="Elite Scouting Agency profile" className="h-10 w-10 rounded-full object-cover ring-2 ring-primary" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVvAEjvtsRMjMOaQiLfBwdyhIpGNuT_6smT_6_6ePWY0WFrmmGvyUlDII40U5wPeok1dtR4ySWlvn1rGA9Gs4MRG0QQWjNB2vv6LwoJ8QTo7PsKACICwBDdyBocFjlLQ6eIyAbtLD0UdJ_MUi2CqGAf3AWfdJlkDHZeZxHtT_lmxHrPQDlBMP9OeaCcPWYJNlnQxItmekAxuLw0i0NN_ZcM4KqrhEuzxIaaeWlRPU8gp4lof9x4QZSfKgFiR6_51wpltanHt0dXBbY"/>
+                                        <div className="absolute -bottom-1 -right-1 bg-slate-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-background-dark">SCOUT</div>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center gap-1.5">
+                                            <h3 className="font-bold text-sm text-slate-900 dark:text-white">Elite Scouting Agency</h3>
+                                            <span className="material-symbols-outlined text-yellow-500 text-[14px] filled">star</span>
+                                        </div>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">London, UK • Agency</p>
+                                    </div>
+                                </div>
+                                <button className="text-slate-400 hover:text-white transition-colors">
+                                    <span className="material-symbols-outlined">more_horiz</span>
+                                </button>
+                            </div>
+                            <div className="relative w-full aspect-video bg-slate-800 overflow-hidden">
+                                <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuC4O0TdspeENSQhcgoag3BXHwA_pAcGmny0VNtjpm9Om-Mz0oV9dReN7DCIanpFW-71TTuTR6Vefoq0J8VgvP_tWEOKlioJvTm4j5r_7htokufWHmhaHv1WS1_lcilxVkeoWkaLEWVYMJs-TML-1Y5xefEYsYtNKX39iPdEKFtqQnRWVl_KL_4slnrHchPl14SoL3ZMi9Atam10xh6SQ04U47lvil4Hv-6vTgg4aRKuf1GncKMnkOwIHulsvQwKKorl6d5JzRfLhreO')"}}></div>
+                                <div className="absolute bottom-4 right-4 bg-primary/90 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[14px]">person_search</span>
+                                    RECRUITING
+                                </div>
+                            </div>
+                            <div className="px-4 py-3 flex items-center justify-between">
+                                <div className="flex items-center gap-5">
+                                    <button className="group flex items-center gap-1 text-slate-900 dark:text-white">
+                                        <span className="material-symbols-outlined text-[26px] group-hover:text-red-500 transition-colors">favorite_border</span>
+                                    </button>
+                                    <button className="group flex items-center gap-1 text-slate-900 dark:text-white">
+                                        <span className="material-symbols-outlined text-[26px] group-hover:text-primary transition-colors">chat_bubble</span>
+                                    </button>
+                                    <button className="group flex items-center gap-1 text-slate-900 dark:text-white">
+                                        <span className="material-symbols-outlined text-[26px] group-hover:text-primary transition-colors">send</span>
+                                    </button>
+                                </div>
+                                <button className="bg-primary/20 hover:bg-primary/30 text-primary px-3 py-1 rounded-full text-xs font-bold transition-colors">
+                                    Apply Now
+                                </button>
+                            </div>
+                            <div className="px-4 flex flex-col gap-1">
+                                <p className="text-sm font-bold text-slate-900 dark:text-white">45 likes</p>
+                                <div className="text-sm text-slate-600 dark:text-slate-300">
+                                    <span className="font-bold text-slate-900 dark:text-white mr-1">Elite Scouting Agency</span>
+                                    Looking for U18 midfielders for the upcoming regional showcase in London next month. Direct message for application details. 📩 <span className="text-primary dark:text-pitch-green">#Scouting</span> <span className="text-primary dark:text-pitch-green">#LondonFootball</span>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-1 uppercase">5 hours ago</p>
+                            </div>
+                        </article>
+                    </main>
+                    <BottomNav active="feed" />
+                </div>
+            );
+        };
+
+        // Screen 2: Player Profile
+        const ScreenProfile = () => {
+            return (
+                <div className="bg-background-light dark:bg-background-dark min-h-screen relative flex flex-col pb-24">
+                     <main className="flex-1 overflow-y-auto no-scrollbar pb-24">
+                        {/* Hero Section */}
+                        <div className="relative h-[420px] w-full">
+                            <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAmPBhIcGcXJ5Da_EzBSzKmY0T4yevDFn7N5vubtJxthdnlVhvD8s4q1c2cZOv9quh0JJLa9YGjCO8WX5Ooh5P6jwhouhyFUzHJTiENp081LL7k2ZebpGL8zJNVmIpDg1wRy6MN0mnzmS6k5_saX6z56kn7eajGAT9tOo0xZdzl497x79oHPPGIOcvhPhePQmGwx_ROQoec_F_X-vmUdyKAEcz4klcMy24hTi4Wuyjv0oVWONWUg23wCXHKEuMLJ3QpND-DIC8v6xuA')"}}></div>
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-background-dark"></div>
+                            {/* Top Nav */}
+                            <div className="absolute top-0 left-0 right-0 p-4 pt-4 flex justify-between items-center z-10">
+                                <Link to="/" className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition">
+                                    <span className="material-symbols-outlined">arrow_back</span>
+                                </Link>
+                                <button className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/60 transition">
+                                    <span className="material-symbols-outlined">more_horiz</span>
+                                </button>
+                            </div>
+                            {/* Player Info */}
+                            <div className="absolute bottom-0 left-0 right-0 px-5 pb-6">
+                                <div className="flex items-end justify-between">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="bg-primary px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white">Forward</span>
+                                            <span className="bg-slate-800/80 backdrop-blur-sm px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-slate-300">19 Yrs</span>
+                                        </div>
+                                        <h1 className="text-4xl font-bold text-white mb-1 tracking-tight">Marcus Silva</h1>
+                                        <p className="text-slate-300 text-sm flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[16px] text-primary">location_on</span>
+                                            Manchester, UK
+                                        </p>
+                                    </div>
+                                    <div className="h-14 w-14 rounded-full border-2 border-primary overflow-hidden relative bg-slate-800">
+                                        <img alt="Team Logo" className="object-cover h-full w-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtV4LvTPYb5owxi9YIjM_tEo0d1PFuJwW5U8UlJDis9j2TS9a3YTIRAupYEJBG0Ik9hFe_GWr7zU2Uoq44Ps-we4LNWK-Sdl5jisAv6ZvNORCndbjxaUHf8pPrHyrM3ioKlSvD4Qc2AQF19z8VVVzdtIAfdYluRCSPeFXHHrZMK5Kp0yS6EUQYTXYuiG0mzIvfJwGv0dlYRgt0dXbRuI2cmSyF7uddAZSW0ZZemHuEKj3qjdED308Wtu__DDxQOe0EHk7sGbdeVNmv"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Stats & Actions */}
+                        <div className="px-5 pt-2 space-y-6">
+                            <p className="text-slate-400 text-sm leading-relaxed">
+                                Explosive winger looking for pro opportunities. Academy graduate with a hunger to win. 
+                                <span className="text-primary font-medium ml-1">#NextGen #Winger</span>
+                            </p>
+                            <div className="flex gap-3">
+                                <button className="flex-1 bg-primary hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition active:scale-[0.98]">
+                                    <span className="material-symbols-outlined text-[20px]">mail</span>
+                                    Message Agent
+                                </button>
+                                <button className="flex-1 bg-slate-800 border border-slate-700 hover:bg-slate-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition active:scale-[0.98]">
+                                    <span className="material-symbols-outlined text-[20px]">person_add</span>
+                                    Follow
+                                </button>
+                            </div>
+                            {/* Stats Grid */}
+                            <div>
+                                <div className="flex justify-between items-center mb-3">
+                                    <h3 className="text-white font-bold text-lg">Season Stats</h3>
+                                    <a href="#" className="text-xs text-primary font-medium hover:underline">View Full Report</a>
+                                </div>
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700 flex flex-col items-center justify-center text-center">
+                                        <span className="text-3xl font-bold text-white font-display">15</span>
+                                        <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium mt-1">Goals</span>
+                                    </div>
+                                    <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700 flex flex-col items-center justify-center text-center">
+                                        <span className="text-3xl font-bold text-white font-display">8</span>
+                                        <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium mt-1">Assists</span>
+                                    </div>
+                                    <div className="bg-slate-800/50 p-3 rounded-lg border border-accent-green/30 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-2 h-2 rounded-full bg-accent-green mr-1.5 mt-1.5 animate-pulse"></div>
+                                        <span className="text-3xl font-bold text-accent-green font-display">34</span>
+                                        <span className="text-[10px] uppercase tracking-wider text-accent-green/80 font-medium mt-1">km/h Speed</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {/* Highlights Section */}
+                            <div>
+                                <div className="flex justify-between items-center mb-3">
+                                    <h3 className="text-white font-bold text-lg">Highlights</h3>
+                                    <div className="flex gap-1">
+                                        <button className="text-slate-400 hover:text-white"><span className="material-symbols-outlined">grid_view</span></button>
+                                        <button className="text-slate-600 hover:text-white"><span className="material-symbols-outlined">view_list</span></button>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 pb-10">
+                                    {[
+                                        {title: "Goal vs. Derby", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBi4AukG0SLUcuH19rTpRCb8OOl5ZT5UXi5wFWqg4-aNMhEq7AOgl8SDOVmepksGWzPCuuCHmkkDERfHx6SnokFqEhXJvyc6ahclhhkyfEciTWX9g4Yz2U65kcnWlcadsYCh_nrd1WInPF-fmiCLf8SN_WNPEPHAwTGUjlcPLaykhKv4BDbYFzai4fkWeklH4yW2z_kNFB5rIc6kNGFq8YWvo46gDPlHJKRTNKOInyOdtXPsqlrOkjwnXlzan-BiGhdE7aQNdaG8oqu", time: "0:45"},
+                                        {title: "Speed & Agility", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBVNg6bKJUtan-ncjafiw_tcD1-ziOR4TgAiqRMXZDeTfAjs22nJqJydOLMe3ZPooq5BjI8dpwIZEkqRpe9mlvXEKClwdCFLOT_sb4QCt4yjV-M1vdHQu1KVmxZp83wduaRjy0L3uS0NHXvK0yYf1yWXBJ2z9c_p_vX8YQT3pcfuSnAqPmSutfuWdpQK-G3qkzguPvfi2LxJ0BNUrYxgCINoao0GEkPauW81ChDRiwYpjyKqqKAni_NHYMzHUG92R4VE1s95_25CLF3", time: "1:20"},
+                                        {title: "Skills 2023", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCGnVPpUwNMmOY_6ebq50awpB-Sf3iwCUPdUDUp7pHf4s3QjPnIynwDAPzfvsthqUxpki6bcjmXMgh6SXrUJwMXboP-IngiwnhIP5GYeZV6Rd_MkNg1MTpuDLuLBFRoOuKkJLvoOxWbaT2T1HXkb0wo6JvIpikmnWlsRQupsDzko82b_0Kd7I1Gl9JV9yNoFGPtQMVSs_gBhP-0wymxHDbY4QkpwNoJBL7eLeNSDJj6yQY0IxvH8aCcy92Zx6j2JhcJKov2CGVLuUjw", time: "2:15"},
+                                        {title: "Hat-trick vs. City", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBRapMNesGUxxBW_CtLV89kyVwd017lQi3rrhscXjrAaooer6ml38Zv6c4tfWG-30Bd1stHQGdibIpQYumiPtsBoQhrIVEFYjczhO_J42B2h0Cd23FJjSvv9osKluPHBgMt6ZtrYox_unqSXaMpuYUnysgLjCko7LtY5E13qOS0xa_FckDIAhIfuGxURg-_dB76ABpkb6p9aJa-OEln7-QuFrteSYo0Z4vcULxTCzZXk6XRUacNrJuxcai9_kkTlvSl9Wc3Mb4co59F", time: "0:58"}
+                                    ].map((clip, i) => (
+                                        <div key={i} className="relative aspect-[4/5] rounded-lg overflow-hidden group cursor-pointer">
+                                            <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style={{backgroundImage: `url('${clip.img}')`}}></div>
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                                            <div className="absolute bottom-3 left-3 right-3">
+                                                <p className="text-white text-sm font-semibold truncate">{clip.title}</p>
+                                                <p className="text-slate-400 text-xs">Recently</p>
+                                            </div>
+                                            <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] text-white font-medium flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-[10px]">play_arrow</span> {clip.time}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                    <BottomNav active="profile" />
+                </div>
+            );
+        };
+
+        // Screen 3: Discovery
+        const ScreenDiscovery = () => {
+            return (
+                <div className="bg-background-light dark:bg-background-dark min-h-screen relative flex flex-col pb-24">
+                    <header className="sticky top-0 z-20 bg-background-dark/95 backdrop-blur-md border-b border-slate-800 pb-2">
+                        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                            <div className="flex-1">
+                                <h2 className="text-white text-xl font-bold leading-tight tracking-tight">Explore Talent</h2>
+                            </div>
+                            <button className="relative flex items-center justify-center p-2 rounded-full text-white hover:bg-slate-800 transition-colors">
+                                <span className="material-symbols-outlined">notifications</span>
+                                <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-accent animate-pulse"></span>
+                            </button>
+                        </div>
+                        <div className="px-4 py-2">
+                            <div className="relative flex items-center w-full h-12 rounded-xl bg-input-dark overflow-hidden group focus-within:ring-2 focus-within:ring-primary transition-all">
+                                <div className="grid place-items-center h-full w-12 text-text-secondary">
+                                    <span className="material-symbols-outlined">search</span>
+                                </div>
+                                <input className="peer h-full w-full outline-none text-sm text-white bg-transparent pr-4 placeholder-text-secondary" placeholder="Search players, clubs, or regions..." type="text"/>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 px-4 py-2 overflow-x-auto no-scrollbar scroll-smooth">
+                            <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary text-white pl-4 pr-3 border border-primary shadow-lg shadow-primary/20">
+                                <span className="text-sm font-medium whitespace-nowrap">All</span>
+                            </button>
+                            {['Position', 'Location', 'Age', 'Market Value'].map(filter => (
+                                <button key={filter} className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-input-dark border border-slate-700 pl-4 pr-3 hover:bg-slate-700 transition-colors group">
+                                    <span className="text-white text-xs font-medium whitespace-nowrap group-hover:text-accent transition-colors">{filter}</span>
+                                    <span className="material-symbols-outlined text-text-secondary text-[18px]">expand_more</span>
+                                </button>
+                            ))}
+                        </div>
+                    </header>
+                    <main className="flex-1 overflow-y-auto no-scrollbar pb-24 space-y-6">
+                        <section className="mt-4">
+                            <div className="flex items-center justify-between px-4 mb-3">
+                                <h3 className="text-white text-lg font-bold">Top Prospects</h3>
+                                <a href="#" className="text-sm font-medium text-accent hover:text-white transition-colors flex items-center gap-1">
+                                    See All <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                                </a>
+                            </div>
+                            <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 pb-4 snap-x">
+                                {[
+                                    {name: "Leo Silva", role: "CAM", country: "🇧🇷", team: "Santos FC", val: "$2.5M", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDnDJVO6NTCimzKs4A0pa-nfESm0DDvz8JFWKOgIPkeuaiiK68sB9hc11s4KdFjVKD0Z2YI5gISbGzKBQFpYbDomUv9Dtl5QwSJIQxtCAVin8pA8LKfjb3jeul6CBaT-F_4Usjvrsx9AuKwEb6IhK_-Lpqvohjbunz7NlDpRZO_hbfZsYGFephz8DeazrXfC3kDMBjxJMft4u6e-vBvRyASmohCMzXsVFNVfikQlCVU3mCqIjl3E6WYakTfMu6yq9dmgo2JuFEeS0iw", badge: "94% Match", badgeColor: "text-accent"},
+                                    {name: "Marcus J.", role: "CB", country: "🇬🇧", team: "Leeds Utd", val: "$800K", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuB-FYXbK0gYGC86DN7-X1ZL7kAc7W4NI9JS2CnIzxri6NmDsGdRVMyBLbPGACedX584bgZhh29PG4V2hHxZuE8hWJvHcituJMDsfn8URW_X5qSRrpDzBiugLKruDP0WbolhEPjUR3WJ1-FZMSPQigMUy2FqnTYHu1vqgkvg0LVozkH1WzIDjoMHjRGnQpmwYkpm9UpY6wrQ5rCzmu7BGuVE7zDAEaLG3XdAq4Tb957B0p7PY-D41o19K7W1mXovK_KJ3YwMRyTBKXAz", badge: "Scouted", badgeColor: "text-text-secondary"},
+                                    {name: "K. Yamal", role: "LW", country: "🇪🇸", team: "Barcelona B", val: "$12M", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBfx_ofC7o13srAS55AMi4CwHA3g5dB35Ly-w6Ai79m-NQiXx7-nMQccCWSaDpidDYCDoueLfDcofXDKfZSGCm_lbyDDox8pX6mfabgxUR5nkiEPnDgg-9B4OUHvzdZalFiTTqCKccC3d9tmut21XtP1eG4DrhEndzI7mrJXh232O2t9zZNq438kp_vedydFCgo0tXbm1GqsYRlFvTJ4s7EXseF-nIk9qOb5au0l_OfrSTpnmrXRpA_ibYCHzN9xmymU0DxGWzKtZlr", badge: null}
+                                ].map((p, i) => (
+                                    <div key={i} className="snap-center shrink-0 w-64 rounded-2xl bg-card-dark border border-slate-800 overflow-hidden relative group">
+                                        <div className={`h-24 bg-gradient-to-br ${i===0?'from-primary/30': i===1?'from-purple-900/40':'from-green-900/30'} to-slate-900 relative`}>
+                                            {p.badge && (
+                                                <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md border border-white/10">
+                                                    <span className={`${p.badgeColor} text-xs font-bold`}>{p.badge}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="absolute top-8 left-4 h-20 w-20 rounded-full border-4 border-card-dark overflow-hidden bg-slate-700">
+                                            <img alt={p.name} className="h-full w-full object-cover" src={p.img}/>
+                                        </div>
+                                        <div className="pt-6 px-4 pb-4">
+                                            <div className="flex justify-end mb-1">
+                                                <span className="text-xs text-text-secondary font-medium bg-slate-800 px-2 py-0.5 rounded">{p.role}</span>
+                                            </div>
+                                            <div className="mt-2">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h4 className="text-white font-bold text-lg">{p.name}</h4>
+                                                    <span className="text-xl">{p.country}</span>
+                                                </div>
+                                                <p className="text-text-secondary text-sm mb-3">19 yrs • {p.team}</p>
+                                                <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+                                                    <div>
+                                                        <p className="text-[10px] text-text-secondary uppercase tracking-wider font-semibold">Market Value</p>
+                                                        <p className="text-white font-bold text-base">{p.val}</p>
+                                                    </div>
+                                                    <button className="bg-input-dark hover:bg-slate-700 text-white p-2 rounded-lg transition-colors border border-slate-700">
+                                                        <span className="material-symbols-outlined text-[20px]">person_add</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                        <section className="px-4">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-white text-lg font-bold">Trending Highlights</h3>
+                                <a href="#" className="text-sm font-medium text-accent hover:text-white transition-colors">See All</a>
+                            </div>
+                            <div className="space-y-4 pb-4">
+                                <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden group cursor-pointer shadow-lg shadow-black/40">
+                                    <img alt="Highlight" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC36-Umgb0S6i4AjXILbPrG1DdmdX9_tQ0ymtNvYSjob5lW_tugn4sYwHBZSuqIdonY71dQss-EchanIXsl-Z-Qt5zq7dLW-ceP3k6xbDCW0b8hz3UWbBSUeF0dKAnGCo5I3wfzoMCvjV7ViyiE9uJr7017rGN9xdT8DlcCMusXVpqFndUZT4MNrGSF9lA6TOUZp9OINqghgFf3zmFsW-SJ58qKtVFEPD8yR7Af91dj2aXIho0I6ojL2U2MZym57Vs0yLTNu8AKD9Ll"/>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-3">
+                                            <span className="material-symbols-outlined text-white text-4xl">play_arrow</span>
+                                        </div>
+                                    </div>
+                                    <div className="absolute bottom-0 left-0 w-full p-4">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="bg-accent/90 text-black text-[10px] font-bold px-1.5 py-0.5 rounded">NEW</span>
+                                            <p className="text-white text-sm font-semibold truncate">Insane free kick goal - U21 League</p>
+                                        </div>
+                                        <div className="flex items-center justify-between text-text-secondary text-xs">
+                                            <div className="flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-[14px]">visibility</span>
+                                                <span>12k views</span>
+                                            </div>
+                                            <span>Coach Carter</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </main>
+                    <BottomNav active="discover" />
+                </div>
+            );
+        };
+
+        // Screen 4: Chat/Network
+        const ScreenChat = () => {
+            return (
+                <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-text-main min-h-screen flex flex-col relative overflow-hidden">
+                    <header className="pt-4 pb-4 px-5 bg-background-light dark:bg-background-dark z-10 sticky top-0">
+                        <div className="flex items-center justify-between mb-6">
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Messages</h1>
+                            <button className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+                                <span className="material-symbols-outlined" style={{fontSize: '24px'}}>edit_square</span>
+                            </button>
+                        </div>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span className="material-symbols-outlined text-text-muted" style={{fontSize: '20px'}}>search</span>
+                            </div>
+                            <input className="block w-full pl-10 pr-3 py-3 border-none rounded-xl bg-white dark:bg-surface-dark text-slate-900 dark:text-white placeholder-text-muted focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-[#233248] transition-all shadow-sm" placeholder="Search agents or players..." type="text"/>
+                        </div>
+                        <div className="flex gap-3 mt-6 overflow-x-auto no-scrollbar pb-1">
+                            <button className="px-4 py-1.5 rounded-full bg-primary text-white text-sm font-medium whitespace-nowrap shadow-lg shadow-primary/25">All Chats</button>
+                            {['Agents', 'Players', 'Unread'].map(tab => (
+                                <button key={tab} className="px-4 py-1.5 rounded-full bg-white dark:bg-surface-dark text-text-muted hover:text-primary hover:bg-primary/10 dark:hover:bg-surface-dark/80 text-sm font-medium whitespace-nowrap border border-slate-200 dark:border-slate-700/50 transition-colors">{tab}</button>
+                            ))}
+                        </div>
+                    </header>
+                    <main className="flex-1 overflow-y-auto no-scrollbar px-2 pb-24">
+                        <div className="px-3 mb-4">
+                            <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3 pl-1">Online Agents</h3>
+                            <div className="flex gap-4 overflow-x-auto no-scrollbar py-1">
+                                {[
+                                    {name: "Marcus S.", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuD1koUeFpxIj9mYnKd4JHQ0pZeyN43RAyBCKmFiao5wd07bp5pn8fGJhBeaNN_VyXqK5ZRfzKj3Pa3j7fXbv1Vi_yRD9TgXEGxLX_QGc5FeV8_7qRh4vsa21xkVk1QvQPrH61mo0v_RVn6n3Uj_7sLctKtmo6o-x_rDH-JWtZ5HWbsn1dto7FQssqOqk_TsRuIF4oK4DrV-kf1d8IlgVdD0tiGKH6I5l2oXGadyip4-bNxDQe5sI_GyEMNX_toGCJeTW7YaQB0U55Wl"},
+                                    {name: "Sarah J.", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAhFuruO1RRVGPU7NxJea45anozQpzpYe_LKzejclblgzf1DcqKGQw746d-9Pex9vb1cf5LIfVFEacfNzXnYe21XcMjBX_p3LMOKuUPsT7N4flOZyuRuXNo5rfl9WnmEuSQn9aNT56dQXEt4Mg8Rtv7T0wjz_1wEepjzkfw6i0nvLet9EEpI00TSNSexqXLyZs6WdN8jRUgO1gvn5nJ43lnd8WV-JSED_4aDXCQBBxckNkIilgAmrfJneJk7guRkR6Acotv9k6B-LLX"},
+                                    {name: "Elite Mgt.", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuBavz7bLcErhz5rQyElf5iT8GjK-zJMX5IKXkMS1RweeLzulgDFz79RW6UDPrtECZVIs8Jww938Ve0qPZLqCq6cva79QXOY9Hv1-T5jhh591u2vSO1pLD045-zzoO5WTVu8Pa2C1Bc300vngtyoOTlfA1z0O-kv4aFq891npsteAXhvVLuXGNcJHRR6vt6-_Vuic3-A1u4Uq6VW8JzSM5FjZHaknLA2n4c6nq2V6v68ZT0cjd98NptpJZWxTMogyMZRmIK1CFoKGlz4"}
+                                ].map((p, i) => (
+                                    <div key={i} className="flex flex-col items-center gap-1 min-w-[64px]">
+                                        <div className="relative">
+                                            <div className="w-14 h-14 rounded-full p-0.5 bg-gradient-to-tr from-primary to-cyan-400">
+                                                <img alt={p.name} className="w-full h-full rounded-full object-cover border-2 border-background-light dark:border-background-dark" src={p.img}/>
+                                            </div>
+                                            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background-light dark:border-background-dark rounded-full"></span>
+                                        </div>
+                                        <span className="text-[10px] font-medium text-center truncate w-16">{p.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <a href="#" className="group flex items-center gap-4 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors relative">
+                                <div className="relative flex-shrink-0">
+                                    <img className="w-14 h-14 rounded-full object-cover bg-surface-dark" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6BmZ0LgCe60d-Usp27JRvxQFR1P55g-I8i0Mj3yIqsBYNLXE9cn5B0d6E6Tn15ZxevjP3j0RJjqrcctATXAr0Bx8I0cjkQGcrK-1CI3y9uG2RSd_z3JQsTv25jGumeyatPeCL_ADYkvvmOh6PF9J_A0HH1S0PreOygD1ZFYefr6hwAj15DebyN7V-uM8jA80FX_MTUzUsEXO3W_aiyJt_M7rHJ9O6CPlTOY85_xMNsU-3U-lkFtNu65MwfKzHPG2k8em3Vi_5emP4"/>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-baseline mb-0.5">
+                                        <h4 className="text-base font-semibold text-slate-900 dark:text-white truncate flex items-center gap-1">Marcus Silva <span className="material-symbols-outlined text-primary text-[16px] filled">verified</span></h4>
+                                        <span className="text-xs font-medium text-primary">10m</span>
+                                    </div>
+                                    <p className="text-sm text-slate-900 dark:text-white font-medium truncate">I reviewed your highlight reel. Let's talk...</p>
+                                </div>
+                                <div className="w-2.5 h-2.5 bg-primary rounded-full flex-shrink-0"></div>
+                            </a>
+                            {/* More mock chats could go here */}
+                             <a className="group flex items-center gap-4 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors" href="#">
+                                <div className="relative flex-shrink-0">
+                                <img alt="Portrait of David Ojo" className="w-14 h-14 rounded-full object-cover bg-surface-dark" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4tJVHRyykQFX2UzpH-E2FTFFl6jKFm-NEVIXSvuRMBGyQkWa28w7Ry962qNOUHoymfPvFSODLayFEQWrnlAYD1wVAJ_4mY5UG-G-HAnVvmWX2DsG9zFVcSX12aCh9cC636ZO5TDqZeOAKbH-VNoIoA59xVD5dCT4_I33Tatqd9L67Oomz0mYGtRNlFchXGsRtuSCdKaIZylBThLfakKO2CKVUWf29Os-65ucTs0M_5sVvoIG6RI7LChMkZd3Iufk-QUti4AmvdnnP"/>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-baseline mb-0.5">
+                                <h4 className="text-base font-semibold text-slate-900 dark:text-white truncate">David Ojo</h4>
+                                <span className="text-xs text-text-muted">2h</span>
+                                </div>
+                                <p className="text-sm text-text-muted truncate flex items-center gap-1">
+                                                            Did you see the match yesterday?
+                                                        </p>
+                                </div>
+                            </a>
+                        </div>
+                    </main>
+                    <button className="absolute bottom-24 right-5 w-14 h-14 bg-primary rounded-full shadow-lg shadow-primary/40 flex items-center justify-center text-white hover:scale-105 transition-transform z-20">
+                        <span className="material-symbols-outlined" style={{fontSize: '28px'}}>add_comment</span>
+                    </button>
+                    <BottomNav active="network" />
+                </div>
+            );
+        };
+
+        // Screen 5: Create Highlight (Full screen modal feel)
+        const ScreenCreate = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="bg-background font-display text-slate-900 h-screen flex flex-col overflow-hidden bg-white">
+                    <header className="flex-none px-4 pt-4 pb-4 flex items-center justify-between bg-white z-10">
+                        <button onClick={() => navigate(-1)} className="p-2 -ml-2 rounded-full hover:bg-slate-50 transition-colors">
+                            <span className="material-symbols-outlined text-[28px] text-slate-900">close</span>
+                        </button>
+                        <h1 className="text-lg font-bold text-slate-900">New Highlight</h1>
+                        <button onClick={() => navigate('/')} className="bg-slate-900 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-slate-800 transition-colors">
+                            Next
+                        </button>
+                    </header>
+                    <main className="flex-1 flex flex-col relative bg-slate-50 overflow-hidden">
+                        <div className="flex-1 relative flex items-center justify-center bg-slate-100 m-4 rounded-2xl overflow-hidden shadow-sm ring-1 ring-slate-200">
+                            <div className="absolute inset-0 bg-cover bg-center opacity-90" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBGMiNO3UUTeR4uThwPhkcDz0SBwA_e-gsJnVjjNAYAOld78ntKHKXcnvGVY6OihadnWEU3BFpHYKFrNhpoWDFwy8eN0oflJ47qgYMRH70wHcQ2Fg1gbO2htJhDC7aM1fedWTys0SRRDmIS6aQ3Z4jLRs6Vwbrh-X8JW9gz_MhGE7LZlNijHDTTIBZLqHuYOh8BEHMliSFakyaRyUEZHZQ3d8LRXffT8V3xZ8qzXoxqPR16AIMlfEKTqSj7_E86zwsB8TwGlRfpp867')"}}></div>
+                            <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                                <button className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50 shadow-lg hover:scale-105 transition-transform">
+                                    <span className="material-symbols-outlined text-white text-[40px] filled ml-1">play_arrow</span>
+                                </button>
+                            </div>
+                            <div className="absolute top-4 right-4 flex flex-col gap-3">
+                                <div className="w-10 h-10 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white">
+                                    <span className="material-symbols-outlined text-[20px]">volume_up</span>
+                                </div>
+                                <div className="w-10 h-10 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white">
+                                    <span className="material-symbols-outlined text-[20px]">aspect_ratio</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex-none px-4 pb-2">
+                            <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2 px-1">
+                                <span>00:00</span>
+                                <span>00:15</span>
+                            </div>
+                            <div className="relative h-16 w-full rounded-xl overflow-hidden bg-slate-200 ring-2 ring-white shadow-sm">
+                                <div className="absolute inset-0 flex">
+                                    {[0,20,40,60,80].map(pos => (
+                                        <div key={pos} className="flex-1 bg-cover bg-center grayscale opacity-50" style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBGMiNO3UUTeR4uThwPhkcDz0SBwA_e-gsJnVjjNAYAOld78ntKHKXcnvGVY6OihadnWEU3BFpHYKFrNhpoWDFwy8eN0oflJ47qgYMRH70wHcQ2Fg1gbO2htJhDC7aM1fedWTys0SRRDmIS6aQ3Z4jLRs6Vwbrh-X8JW9gz_MhGE7LZlNijHDTTIBZLqHuYOh8BEHMliSFakyaRyUEZHZQ3d8LRXffT8V3xZ8qzXoxqPR16AIMlfEKTqSj7_E86zwsB8TwGlRfpp867')", backgroundPosition: `${pos}% center`}}></div>
+                                    ))}
+                                </div>
+                                <div className="absolute inset-y-0 left-[10%] right-[20%] border-y-4 border-accent bg-accent/20 backdrop-blur-[1px] z-10"></div>
+                                <div className="absolute inset-y-0 left-[10%] w-5 bg-accent rounded-l-md flex items-center justify-center z-20 shadow-md cursor-ew-resize">
+                                    <div className="h-6 w-1 bg-white/50 rounded-full"></div>
+                                </div>
+                                <div className="absolute inset-y-0 right-[20%] w-5 bg-accent rounded-r-md flex items-center justify-center z-20 shadow-md cursor-ew-resize">
+                                    <div className="h-6 w-1 bg-white/50 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div className="text-center mt-2">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Clip Duration: 8.4s</p>
+                            </div>
+                        </div>
+                    </main>
+                    <footer className="flex-none bg-white border-t border-slate-100 pb-8 pt-4">
+                        <div className="flex overflow-x-auto no-scrollbar gap-6 px-6 items-start">
+                            <button className="flex flex-col items-center gap-2 min-w-[64px] group">
+                                <div className="w-14 h-14 rounded-full bg-accent/10 border-2 border-accent text-accent-dark flex items-center justify-center transition-all group-active:scale-95 shadow-neon">
+                                    <span className="material-symbols-outlined text-[28px]">content_cut</span>
+                                </div>
+                                <span className="text-xs font-semibold text-slate-900">Trim</span>
+                            </button>
+                            {['music_note', 'query_stats', 'filter_b_and_w', 'title'].map((icon, i) => (
+                                <button key={i} className="flex flex-col items-center gap-2 min-w-[64px] group opacity-60 hover:opacity-100 transition-opacity">
+                                    <div className="w-14 h-14 rounded-full bg-slate-50 border border-slate-200 text-slate-600 flex items-center justify-center transition-all group-active:scale-95">
+                                        <span className="material-symbols-outlined text-[28px]">{icon}</span>
+                                    </div>
+                                    <span className="text-xs font-medium text-slate-500">Edit</span>
+                                </button>
+                            ))}
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+        
+        // Screen 6: Scout Dashboard (Agent View) - Accessible maybe via a hidden link or role switch, 
+        // but for this prototype, let's map it to a specific route for demo.
+        const ScreenDashboard = () => {
+             return (
+                <div className="bg-background-light dark:bg-background-dark min-h-screen pb-24">
+                     <header className="sticky top-0 z-50 bg-white/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-5 py-4 flex items-center justify-between shadow-sm">
+                        <div>
+                            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Scout Dashboard</h1>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">Welcome back, Agent Smith</p>
+                        </div>
+                        <div className="h-10 w-10 rounded-full bg-slate-200 overflow-hidden ring-2 ring-slate-100 dark:ring-slate-700">
+                             <img className="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAflUV3QkxE_RcGYJsDzBU5Vy-AHBXCM5g8h5G6hNYVxCqoYOgvgU-WTclr8xcKXyfPN3YuVDnw6IKA5dYHQQ7KsbycqKfJu8I89FP5yGFlduvjoTlu8_fIv92JTlPM3uU5wJM3AG0KiqPeDhhX1Kg_XwVfTxoWt3QGhTRFfE5-GuVsyX7ddZDXwnX2b6elis9dpX-P7yQ4aAEdr66cnjLUHYoG-uyjh0JJib0ILJyzxZABlW61mC37gNQwokerwjzoUCNY1Wkxd9eR"/>
+                        </div>
+                    </header>
+                    <main className="flex flex-col gap-6 p-5">
+                         <section className="grid grid-cols-2 gap-4">
+                            <div className="bg-white dark:bg-[#1e293b] p-4 rounded-2xl shadow-card border border-slate-100 dark:border-slate-700 flex flex-col justify-between h-32 relative overflow-hidden group">
+                                <div className="absolute right-[-10px] top-[-10px] bg-blue-50 dark:bg-blue-900/20 w-16 h-16 rounded-full opacity-50"></div>
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="material-symbols-outlined text-primary text-[20px]">push_pin</span>
+                                        <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-300">Pinned</h3>
+                                    </div>
+                                    <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">12</p>
+                                </div>
+                            </div>
+                            <div className="bg-white dark:bg-[#1e293b] p-4 rounded-2xl shadow-card border border-slate-100 dark:border-slate-700 flex flex-col justify-between h-32 relative overflow-hidden group">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="material-symbols-outlined text-purple-600 text-[20px]">inventory_2</span>
+                                        <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-300">Applications</h3>
+                                    </div>
+                                    <p className="text-3xl font-bold text-slate-900 dark:text-white mt-1">48</p>
+                                </div>
+                            </div>
+                        </section>
+                        <section className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-card border border-slate-100 dark:border-slate-700 p-5">
+                             <div className="flex items-center justify-between mb-4">
+                                <h2 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-primary">insights</span>
+                                    Network Growth
+                                </h2>
+                            </div>
+                            <div className="w-full h-32 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-400 text-xs">Chart Mockup</div>
+                        </section>
+                         <section>
+                            <h2 className="font-bold text-lg text-slate-900 dark:text-white mb-4">New Talent Alerts</h2>
+                            <div className="flex flex-col gap-4">
+                                <div className="bg-white dark:bg-[#1e293b] p-4 rounded-xl shadow-card border border-slate-100 dark:border-slate-700 flex gap-4 items-start">
+                                    <div className="relative flex-shrink-0">
+                                        <img alt="Player" className="w-20 h-20 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArg34bM-NKhOFvhI_0_dPuDrI3nc-8cj5SbFP91P6Viugkm5Y3zhbB60BbO_DNJfY483GblqxYYdWnjSoiMGbDprshM15mDbNfu90yhTfTuQwlRSB-GFWYk_7Je_ICoWu_bkgEuV4F5n9OWU0QED5T7J5_9UtgDtVW7o_PKsyeVrmEhQloipX-EwvzSckvnPWtiEPyXapLP4xducdVkqv-9l_ne3cUBII6YUZb7htaB2hjgg4IyjMQJn6LNxqGmFTYHKKcsVgza7pw"/>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="font-bold text-slate-900 dark:text-white">Marcus Rash</h3>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">19 yrs • Winger</p>
+                                        <div className="flex gap-3 mt-2">
+                                            <div className="text-center"><p className="text-[10px] text-slate-400 font-bold">SPD</p><p className="text-sm font-bold dark:text-white">88</p></div>
+                                            <div className="text-center"><p className="text-[10px] text-slate-400 font-bold">DRI</p><p className="text-sm font-bold dark:text-white">85</p></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </main>
+                    <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-[#192434] border-t border-slate-200 dark:border-[#233248] px-2 pb-5 pt-2 z-50 flex justify-around">
+                        <Link to="/" className="flex flex-col items-center gap-1"><span className="material-symbols-outlined">home</span><span className="text-[10px]">Back to Feed</span></Link>
+                    </div>
+                </div>
+             )
+        }
+
+        const App = () => {
+            return (
+                <Routes>
+                    <Route path="/" element={<ScreenFeed />} />
+                    <Route path="/discover" element={<ScreenDiscovery />} />
+                    <Route path="/chat" element={<ScreenChat />} />
+                    <Route path="/profile" element={<ScreenProfile />} />
+                    <Route path="/profile/:id" element={<ScreenProfile />} />
+                    <Route path="/create" element={<ScreenCreate />} />
+                    <Route path="/dashboard" element={<ScreenDashboard />} />
+                </Routes>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(
+            <MemoryRouter>
+                <App />
+            </MemoryRouter>
+        );
+    </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-primary: #277bf1;
+  --color-background-light: #f6f7f8;
+  --color-background-dark: #101722;
+  --color-surface-dark: #1a2536;
+  --color-surface-light: #ffffff;
+  --color-text-main: #e2e8f0;
+  --color-text-muted: #94a3b8;
+  --color-pitch-green: #34d399;
+  --color-accent: #39FF14;
+  --color-accent-green: #39FF14;
+  --color-accent-dark: #059669;
+  --color-light-grey: #f3f4f6;
+  --color-card-dark: #192434;
+  --color-input-dark: #233248;
+  --color-text-secondary: #91a9ca;
+  --color-divider: #f1f3f5;
+
+  --font-display: var(--font-lexend);
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --shadow-neon: 0 0 10px rgba(52, 211, 153, 0.5);
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-background-light);
+  }
+}
