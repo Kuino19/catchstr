@@ -1,11 +1,11 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import imageCompression from 'browser-image-compression';
+import Link from 'next/link';
+import BottomNav from '@/components/BottomNav';
 
 interface Profile {
-    id: string;
     full_name: string;
     role: string;
     position: string;
@@ -17,251 +17,224 @@ interface Profile {
 
 export default function EditProfilePage() {
     const router = useRouter();
-    const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [profile, setProfile] = useState<Profile>({
+        full_name: '',
+        role: 'Player',
+        position: '',
+        location: '',
+        bio: '',
+        avatar_url: '',
+        banner_url: ''
+    });
 
-    // Form inputs
-    const [fullName, setFullName] = useState('');
-    const [position, setPosition] = useState('');
-    const [location, setLocation] = useState('');
-    const [bio, setBio] = useState('');
-    const [avatarUrl, setAvatarUrl] = useState('');
-    const [bannerUrl, setBannerUrl] = useState('');
-
-    const avatarInputRef = useRef<HTMLInputElement>(null);
-    const bannerInputRef = useRef<HTMLInputElement>(null);
+    const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
     useEffect(() => {
-        async function loadData() {
+        async function loadProfile() {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session?.user) {
                 router.push('/login');
                 return;
             }
 
-            const { data } = await supabase
+            const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', session.user.id)
-                .single();
+                .maybeSingle();
 
             if (data) {
-                const p = data as Profile;
-                setProfile(p);
-                setFullName(p.full_name || '');
-                setPosition(p.position || '');
-                setLocation(p.location || '');
-                setBio(p.bio || '');
-                setAvatarUrl(p.avatar_url || '');
-                setBannerUrl(p.banner_url || '');
+                setProfile(data);
+                setAvatarPreview(data.avatar_url);
             }
             setLoading(false);
         }
-
-        loadData();
+        loadProfile();
     }, [router]);
 
-    const compressAndUploadImage = async (file: File, prefix: string): Promise<string | null> => {
-        if (!profile) return null;
-
-        try {
-            // Compress image
-            const options = {
-                maxSizeMB: 1, // max 1MB limit for profile assets
-                maxWidthOrHeight: 1920,
-                useWebWorker: true
-            };
-            const compressedFile = await imageCompression(file, options);
-
-            // Upload to Supabase
-            const fileExt = compressedFile.name.split('.').pop() || 'jpg';
-            const fileName = `${prefix}_${Math.random()}.${fileExt}`;
-            const filePath = `${profile.id}/${fileName}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from('media')
-                .upload(filePath, compressedFile);
-
-            if (uploadError) throw uploadError;
-
-            const { data: { publicUrl } } = supabase.storage
-                .from('media')
-                .getPublicUrl(filePath);
-
-            return publicUrl;
-
-        } catch (error) {
-            console.error('Image compression or upload failed', error);
-            alert('Failed to process image.');
-            return null;
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setAvatarFile(file);
+            setAvatarPreview(URL.createObjectURL(file));
         }
     };
 
-    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setSaving(true);
-            const url = await compressAndUploadImage(e.target.files[0], 'avatar');
-            if (url) setAvatarUrl(url);
-            setSaving(false);
-        }
-    };
-
-    const handleBannerChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setSaving(true);
-            const url = await compressAndUploadImage(e.target.files[0], 'banner');
-            if (url) setBannerUrl(url);
-            setSaving(false);
-        }
-    };
-
-    const handleSave = async () => {
-        if (!profile) return;
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault();
         setSaving(true);
 
-        const updates = {
-            full_name: fullName,
-            position,
-            location,
-            bio,
-            avatar_url: avatarUrl,
-            banner_url: bannerUrl,
-        };
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.user) throw new Error("No session");
 
-        const { error } = await supabase
-            .from('profiles')
-            .update(updates)
-            .eq('id', profile.id);
+            let finalAvatarUrl = profile.avatar_url;
 
-        if (error) {
-            console.error('Save failed', error);
-            alert('Failed to save profile updates.');
-        } else {
+            // Upload new avatar if selected
+            if (avatarFile) {
+                const fileExt = avatarFile.name.split('.').pop();
+                const fileName = `${session.user.id}/avatar-${Date.now()}.${fileExt}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('media')
+                    .upload(fileName, avatarFile);
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage
+                    .from('media')
+                    .getPublicUrl(fileName);
+
+                finalAvatarUrl = publicUrl;
+            }
+
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({
+                    full_name: profile.full_name,
+                    role: profile.role,
+                    position: profile.position,
+                    location: profile.location,
+                    bio: profile.bio,
+                    avatar_url: finalAvatarUrl
+                })
+                .eq('id', session.user.id);
+
+            if (updateError) throw updateError;
+
             router.push('/profile');
+            router.refresh();
+        } catch (error: any) {
+            alert("Error updating profile: " + error.message);
+        } finally {
+            setSaving(false);
         }
-
-        setSaving(false);
     };
 
     if (loading) {
         return (
             <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
 
     return (
-        <div className="bg-slate-50 dark:bg-slate-900 font-display text-slate-900 dark:text-white min-h-screen">
-            <header className="px-4 py-4 flex items-center justify-between bg-white dark:bg-slate-900 sticky top-0 z-50 border-b border-divider dark:border-slate-800">
-                <button onClick={() => router.back()} className="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased pb-24 min-h-screen">
+            <header className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-4 py-3 flex items-center justify-between">
+                <Link href="/profile" className="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
                     <span className="material-symbols-outlined text-[24px]">close</span>
-                </button>
-                <h1 className="text-lg font-bold">Edit Profile</h1>
+                </Link>
+                <h1 className="text-lg font-bold tracking-tight">Edit Profile</h1>
                 <button
-                    onClick={handleSave}
+                    form="edit-profile-form"
                     disabled={saving}
-                    className="text-primary font-bold hover:text-blue-600 disabled:opacity-50 transition-colors"
+                    className="text-primary font-bold disabled:opacity-50"
                 >
-                    {saving ? 'Saving...' : 'Save'}
+                    {saving ? 'Saving...' : 'Done'}
                 </button>
             </header>
 
-            <main className="max-w-md mx-auto w-full px-4 pb-16">
-
-                {/* Visuals Editor */}
-                <section className="mt-6 flex flex-col items-center gap-6">
-                    {/* Banner Editor */}
-                    <div className="w-full relative h-[140px] rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-700 shadow-sm border border-slate-300 dark:border-slate-600">
-                        {bannerUrl ? (
-                            <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
-                                <span className="material-symbols-outlined text-3xl">wallpaper</span>
-                                <span className="text-xs font-semibold mt-1">No Banner</span>
+            <main className="p-6 max-w-lg mx-auto">
+                <form id="edit-profile-form" onSubmit={handleSave} className="space-y-8">
+                    {/* Avatar Section */}
+                    <div className="flex flex-col items-center">
+                        <div className="relative group">
+                            <div className="h-24 w-24 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800 border-4 border-white dark:border-slate-800 shadow-lg">
+                                {avatarPreview ? (
+                                    <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-slate-400 text-4xl">person</span>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                        <button
-                            onClick={() => bannerInputRef.current?.click()}
-                            className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white p-2 rounded-full hover:bg-black/80 transition-colors"
-                        >
-                            <span className="material-symbols-outlined text-[18px]">add_a_photo</span>
-                        </button>
-                    </div>
-
-                    {/* Avatar Editor */}
-                    <div className="relative -mt-16 z-10 flex flex-col items-center">
-                        <div className="relative w-28 h-28 rounded-full border-4 border-slate-50 dark:border-slate-900 overflow-hidden bg-slate-200 dark:bg-slate-700 shadow-md">
-                            {avatarUrl ? (
-                                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                    <span className="material-symbols-outlined text-5xl">person</span>
-                                </div>
-                            )}
+                            <label className="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                <span className="material-symbols-outlined">add_a_photo</span>
+                                <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                            </label>
                         </div>
-                        <button
-                            onClick={() => avatarInputRef.current?.click()}
-                            className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full border-4 border-slate-50 dark:border-slate-900 hover:bg-blue-600 transition-colors shadow-sm"
-                        >
-                            <span className="material-symbols-outlined text-[16px]">add_a_photo</span>
-                        </button>
-                    </div>
-                </section>
-
-                <input type="file" ref={avatarInputRef} className="hidden" accept="image/*" onChange={handleAvatarChange} />
-                <input type="file" ref={bannerInputRef} className="hidden" accept="image/*" onChange={handleBannerChange} />
-
-                {/* Form Fields */}
-                <section className="mt-8 flex flex-col gap-5">
-
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Full Name</label>
-                        <input
-                            type="text"
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                            placeholder="Your full name"
-                        />
+                        <p className="text-xs text-slate-500 mt-2 font-medium">Change Profile Photo</p>
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Role / Position</label>
-                        <input
-                            type="text"
-                            value={position}
-                            onChange={(e) => setPosition(e.target.value)}
-                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                            placeholder="e.g. Center Forward, FIFA Licensed Agent"
-                        />
-                    </div>
+                    <div className="space-y-6 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                        {/* Full Name */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Full Name</label>
+                            <input
+                                type="text"
+                                value={profile.full_name}
+                                onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary px-4 py-3 text-sm font-medium"
+                                placeholder="Enter your full name"
+                            />
+                        </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Location</label>
-                        <input
-                            type="text"
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
-                            placeholder="e.g. London, UK"
-                        />
-                    </div>
+                        {/* Bio */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Bio</label>
+                            <textarea
+                                value={profile.bio}
+                                onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary px-4 py-3 text-sm font-medium min-h-[100px] resize-none"
+                                placeholder="Tell the community about yourself..."
+                            />
+                        </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest px-1">Bio</label>
-                        <textarea
-                            value={bio}
-                            onChange={(e) => setBio(e.target.value)}
-                            rows={4}
-                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none"
-                            placeholder="Tell the network about your journey..."
-                        />
-                    </div>
+                        {/* Role Selection */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">I am an</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                {['Player', 'Agent'].map((r) => (
+                                    <button
+                                        key={r}
+                                        type="button"
+                                        onClick={() => setProfile({ ...profile, role: r })}
+                                        className={`py-3 px-4 rounded-xl text-sm font-bold transition-all border-2 ${profile.role === r
+                                                ? 'bg-primary/10 border-primary text-primary'
+                                                : 'bg-slate-50 dark:bg-slate-800 border-transparent text-slate-500'
+                                            }`}
+                                    >
+                                        {r}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
 
-                </section>
+                        {/* Position */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Position / Title</label>
+                            <input
+                                type="text"
+                                value={profile.position}
+                                onChange={(e) => setProfile({ ...profile, position: e.target.value })}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary px-4 py-3 text-sm font-medium"
+                                placeholder={profile.role === 'Agent' ? 'e.g. FIFA Licensed Agent' : 'e.g. Striker / Forward'}
+                            />
+                        </div>
+
+                        {/* Location */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Location</label>
+                            <div className="relative">
+                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">location_on</span>
+                                <input
+                                    type="text"
+                                    value={profile.location}
+                                    onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary pl-11 pr-4 py-3 text-sm font-medium"
+                                    placeholder="City, Country"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </main>
+
+            <BottomNav />
         </div>
     );
 }

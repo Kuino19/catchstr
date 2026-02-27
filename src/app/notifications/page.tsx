@@ -1,35 +1,30 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import BottomNav from '@/components/BottomNav';
 import { supabase } from '@/lib/supabase';
+import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
 
 interface Notification {
     id: string;
-    type: string;
+    type: 'follow' | 'like' | 'message';
     is_read: boolean;
     created_at: string;
-    actor_id: string;
-    post_id?: string;
-    actor?: {
+    actor: {
+        id: string;
         full_name: string;
         avatar_url: string;
     };
+    post_id?: string;
 }
 
 export default function NotificationsPage() {
-    const router = useRouter();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function fetchNotifications() {
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session?.user) {
-                router.push('/login');
-                return;
-            }
+            if (!session?.user) return;
 
             const { data, error } = await supabase
                 .from('notifications')
@@ -38,165 +33,100 @@ export default function NotificationsPage() {
                     type,
                     is_read,
                     created_at,
-                    actor_id,
                     post_id,
-                    profiles!notifications_actor_id_fkey (full_name, avatar_url)
+                    actor:actor_id (id, full_name, avatar_url)
                 `)
                 .eq('user_id', session.user.id)
                 .order('created_at', { ascending: false });
 
-            if (data && !error) {
-                const formatted = data.map((n: any) => ({
-                    ...n,
-                    actor: n.profiles
-                }));
-                setNotifications(formatted);
-
-                // Mark all as read
-                const unreadIds = formatted.filter((n: Notification) => !n.is_read).map((n: Notification) => n.id);
-                if (unreadIds.length > 0) {
-                    await supabase
-                        .from('notifications')
-                        .update({ is_read: true })
-                        .in('id', unreadIds);
-                }
+            if (data) {
+                setNotifications(data as any);
             }
             setLoading(false);
         }
 
         fetchNotifications();
-    }, [router]);
+    }, []);
 
-    const formatTimeAgo = (dateString: string) => {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-        if (diffInSeconds < 60) return `${diffInSeconds}s ago`;
-        if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-        if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-        return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    };
-
-    const getNotificationText = (type: string, actorName: string) => {
+    const getIcon = (type: string) => {
         switch (type) {
-            case 'follow': return <span className="text-sm"><span className="font-bold text-slate-900 dark:text-white">{actorName}</span> sent you a connection request.</span>;
-            case 'follow_accepted': return <span className="text-sm">You accepted <span className="font-bold text-slate-900 dark:text-white">{actorName}</span>'s request.</span>;
-            case 'like': return <span className="text-sm"><span className="font-bold text-slate-900 dark:text-white">{actorName}</span> liked your highlight.</span>;
-            case 'message': return <span className="text-sm"><span className="font-bold text-slate-900 dark:text-white">{actorName}</span> sent you a message.</span>;
-            default: return <span className="text-sm"><span className="font-bold text-slate-900 dark:text-white">{actorName}</span> interacted with your profile.</span>;
+            case 'follow': return 'person_add';
+            case 'like': return 'favorite';
+            case 'message': return 'chat';
+            default: return 'notifications';
         }
     };
 
-    const getNotificationIcon = (type: string) => {
-        switch (type) {
-            case 'follow': return <span className="material-symbols-outlined text-primary text-[18px]">person_add</span>;
-            case 'follow_accepted': return <span className="material-symbols-outlined text-pitch-green text-[18px]">check_circle</span>;
-            case 'like': return <span className="material-symbols-outlined text-red-500 text-[18px] filled">favorite</span>;
-            case 'message': return <span className="material-symbols-outlined text-blue-500 text-[18px]">chat_bubble</span>;
-            default: return <span className="material-symbols-outlined text-slate-500 text-[18px]">notifications</span>;
+    const getMessage = (notif: Notification) => {
+        switch (notif.type) {
+            case 'follow': return 'started following you';
+            case 'like': return 'liked your highlight';
+            case 'message': return 'sent you a message';
+            default: return 'sent a notification';
         }
     };
 
-    const handleAcceptFollow = async (notif: Notification) => {
-        // Update follow status
-        const { error: followError } = await supabase
-            .from('follows')
-            .update({ status: 'accepted' })
-            .eq('follower_id', notif.actor_id)
-            .eq('following_id', (await supabase.auth.getUser()).data.user?.id);
-
-        if (!followError) {
-            // Update local state to remove action buttons or update text
-            setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, type: 'follow_accepted' } : n));
-        }
-    };
-
-    const handleDeclineFollow = async (notif: Notification) => {
-        // Delete follow record
-        const { error: followError } = await supabase
-            .from('follows')
-            .delete()
-            .eq('follower_id', notif.actor_id)
-            .eq('following_id', (await supabase.auth.getUser()).data.user?.id);
-
-        if (!followError) {
-            // Delete notification as well or update local state
-            setNotifications(prev => prev.filter(n => n.id !== notif.id));
-            await supabase.from('notifications').delete().eq('id', notif.id);
-        }
-    };
+    if (loading) {
+        return (
+            <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center">
+                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     return (
-        <div className="bg-background-light dark:bg-background-dark min-h-screen pb-20 font-display">
-            <header className="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center gap-3">
-                <button onClick={() => router.back()} className="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-[24px]">arrow_back_ios_new</span>
-                </button>
-                <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Notifications</h1>
+        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white pb-24 min-h-screen">
+            <header className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-divider dark:border-slate-800 px-6 py-4">
+                <h1 className="text-xl font-bold tracking-tight">Notifications</h1>
             </header>
 
-            <main className="flex flex-col pt-2 max-w-2xl mx-auto w-full">
-                {loading ? (
-                    <div className="flex justify-center p-8">
-                        <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-                    </div>
-                ) : notifications.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center pt-24 px-8 text-center opacity-60">
-                        <span className="material-symbols-outlined text-5xl mb-3 text-slate-400">notifications_off</span>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No Notifications</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">You don't have any notifications right now.</p>
+            <main className="max-w-xl mx-auto divide-y divide-slate-100 dark:divide-slate-800/50">
+                {notifications.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center pt-20 px-8 text-center opacity-40">
+                        <span className="material-symbols-outlined text-6xl mb-4">notifications_off</span>
+                        <p className="text-sm font-medium">No notifications yet. When someone interacts with you, it'll show up here.</p>
                     </div>
                 ) : (
                     notifications.map((notif) => (
-                        <div key={notif.id} className={`flex items-start gap-4 p-4 border-b border-slate-100 dark:border-slate-800/50 ${!notif.is_read ? 'bg-primary/5 dark:bg-primary/10' : ''}`}>
-                            <Link href={`/profile/${notif.actor_id}`} className="relative shrink-0">
-                                {notif.actor?.avatar_url ? (
-                                    <img src={notif.actor.avatar_url} className="w-12 h-12 rounded-full object-cover" alt="Actor Avatar" />
-                                ) : (
-                                    <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                                        <span className="material-symbols-outlined text-slate-400">person</span>
-                                    </div>
-                                )}
-                                <div className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-sm">
-                                    {getNotificationIcon(notif.type)}
+                        <Link
+                            key={notif.id}
+                            href={notif.type === 'message' ? `/chat/${notif.actor.id}` : notif.type === 'like' ? '/' : `/profile/${notif.actor.id}`}
+                            className={`flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${!notif.is_read ? 'bg-primary/5' : ''}`}
+                        >
+                            <div className="relative">
+                                <div className="h-12 w-12 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                    {notif.actor.avatar_url ? (
+                                        <img src={notif.actor.avatar_url} className="w-full h-full object-cover" alt="Actor" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <span className="material-symbols-outlined text-slate-400">person</span>
+                                        </div>
+                                    )}
                                 </div>
-                            </Link>
-                            <div className="flex flex-col flex-1 pt-0.5">
-                                {notif.type === 'follow' ? (
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                        <div>
-                                            {getNotificationText(notif.type, notif.actor?.full_name || 'Someone')}
-                                            <span className="block text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatTimeAgo(notif.created_at)}</span>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleAcceptFollow(notif)}
-                                                className="bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors shadow-sm"
-                                            >
-                                                Accept
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeclineFollow(notif)}
-                                                className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                                            >
-                                                Decline
-                                            </button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {getNotificationText(notif.type, notif.actor?.full_name || 'Someone')}
-                                        <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatTimeAgo(notif.created_at)}</span>
-                                    </>
-                                )}
+                                <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-[14px] text-white shadow-sm border-2 border-white dark:border-slate-800 ${notif.type === 'like' ? 'bg-red-500' : notif.type === 'follow' ? 'bg-pitch-green' : 'bg-primary'
+                                    }`}>
+                                    <span className="material-symbols-outlined text-[14px] filled">{getIcon(notif.type)}</span>
+                                </div>
                             </div>
-                        </div>
+
+                            <div className="flex-1">
+                                <p className="text-sm font-medium leading-snug">
+                                    <span className="font-bold">{notif.actor.full_name}</span> {getMessage(notif)}
+                                </p>
+                                <p className="text-[11px] text-slate-500 mt-1 uppercase font-bold tracking-wider">
+                                    {new Date(notif.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                </p>
+                            </div>
+
+                            {!notif.is_read && (
+                                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                            )}
+                        </Link>
                     ))
                 )}
             </main>
 
-            <BottomNav />
+            <BottomNav active="notifications" />
         </div>
     );
 }

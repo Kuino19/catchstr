@@ -30,6 +30,10 @@ export default function DiscoverPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState<'Trending' | 'Recent' | 'Search'>('Trending');
 
+    // Filters
+    const [selectedRole, setSelectedRole] = useState<string | null>(null);
+    const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+
     // Basic mock trending tags for the top scroll picker
     const trendingTags = ['#TopBins', '#Training', '#MatchDay', '#Goalkeeper', '#ScoutMe'];
 
@@ -49,6 +53,13 @@ export default function DiscoverPage() {
 
             // Build Query
             let query = supabase.from('posts').select(`*, profiles:author_id (*)`);
+
+            if (selectedRole) {
+                query = query.eq('profiles.role', selectedRole);
+            }
+            if (selectedPosition) {
+                query = query.eq('profiles.position', selectedPosition);
+            }
 
             if (searchQuery.trim() !== '') {
                 // If searching, trigger an ILIKE query against tags or content
@@ -78,7 +89,9 @@ export default function DiscoverPage() {
 
         return () => clearTimeout(timeoutId);
 
-    }, [searchQuery, activeTab]);
+    }, [searchQuery, activeTab, selectedRole, selectedPosition]);
+
+    const positions = ['Striker', 'Midfielder', 'Defender', 'Goalkeeper', 'Winger', 'Coach'];
 
     return (
         <div className="bg-background-light dark:bg-background-dark min-h-screen pb-20 font-display">
@@ -99,28 +112,56 @@ export default function DiscoverPage() {
 
             {/* Tags / Tabs Rail */}
             {!searchQuery && (
-                <div className="flex px-4 py-3 gap-2 overflow-x-auto no-scrollbar border-b border-slate-200 dark:border-slate-800">
-                    <button
-                        onClick={() => setActiveTab('Trending')}
-                        className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${activeTab === 'Trending' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
-                    >
-                        🔥 Trending
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('Recent')}
-                        className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${activeTab === 'Recent' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
-                    >
-                        🕒 Recent
-                    </button>
-                    {trendingTags.map((tag) => (
+                <div className="border-b border-slate-200 dark:border-slate-800">
+                    <div className="flex px-4 py-3 gap-2 overflow-x-auto no-scrollbar">
                         <button
-                            key={tag}
-                            onClick={() => setSearchQuery(tag)}
-                            className="px-4 py-1.5 rounded-full text-sm font-semibold bg-primary/10 text-primary whitespace-nowrap"
+                            onClick={() => setActiveTab('Trending')}
+                            className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${activeTab === 'Trending' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
                         >
-                            {tag}
+                            🔥 Trending
                         </button>
-                    ))}
+                        <button
+                            onClick={() => setActiveTab('Recent')}
+                            className={`px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${activeTab === 'Recent' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+                        >
+                            🕒 Recent
+                        </button>
+                        {trendingTags.map((tag) => (
+                            <button
+                                key={tag}
+                                onClick={() => setSearchQuery(tag)}
+                                className="px-4 py-1.5 rounded-full text-sm font-semibold bg-primary/10 text-primary whitespace-nowrap"
+                            >
+                                {tag}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="flex px-4 pb-3 gap-3 overflow-x-auto no-scrollbar">
+                        <select
+                            onChange={(e) => setSelectedRole(e.target.value || null)}
+                            className="bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs font-bold px-3 py-1.5 focus:ring-1 focus:ring-primary min-w-[100px]"
+                        >
+                            <option value="">All Roles</option>
+                            <option value="Player">Players</option>
+                            <option value="Agent">Agents</option>
+                        </select>
+
+                        <div className="flex gap-1.5">
+                            {positions.map(pos => (
+                                <button
+                                    key={pos}
+                                    onClick={() => setSelectedPosition(selectedPosition === pos ? null : pos)}
+                                    className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border ${selectedPosition === pos
+                                            ? 'bg-primary border-primary text-white'
+                                            : 'bg-transparent border-slate-200 dark:border-slate-700 text-slate-500'
+                                        }`}
+                                >
+                                    {pos}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             )}
 

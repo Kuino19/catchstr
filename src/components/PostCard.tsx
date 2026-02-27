@@ -52,7 +52,7 @@ export default function PostCard({ post: initialPost, currentUserId }: PostCardP
                 .select('user_id')
                 .eq('user_id', currentUserId)
                 .eq('post_id', initialPost.id)
-                .single();
+                .maybeSingle();
 
             // Check Save
             const { data: saveData } = await supabase
@@ -60,7 +60,7 @@ export default function PostCard({ post: initialPost, currentUserId }: PostCardP
                 .select('user_id')
                 .eq('user_id', currentUserId)
                 .eq('post_id', initialPost.id)
-                .single();
+                .maybeSingle();
 
             setPost(prev => ({
                 ...prev,

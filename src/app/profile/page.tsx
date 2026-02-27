@@ -30,6 +30,8 @@ export default function ProfilePage() {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
+    const [followerCount, setFollowerCount] = useState(0);
+    const [followingCount, setFollowingCount] = useState(0);
 
     useEffect(() => {
         async function loadProfile() {
@@ -57,6 +59,21 @@ export default function ProfilePage() {
                 if (postsData) {
                     setPosts(postsData as unknown as Post[]);
                 }
+
+                // Fetch Follower Count
+                const { count: followers } = await supabase
+                    .from('follows')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('following_id', session.user.id);
+                setFollowerCount(followers || 0);
+
+                // Fetch Following Count
+                const { count: following } = await supabase
+                    .from('follows')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('follower_id', session.user.id);
+                setFollowingCount(following || 0);
+
             }
             setLoading(false);
         }
@@ -142,16 +159,16 @@ export default function ProfilePage() {
 
                     <div className="flex items-center justify-center gap-8 w-full mt-6 py-4 border-y border-slate-50 dark:border-slate-800/50">
                         <div className="flex flex-col items-center">
-                            <span className="text-lg font-bold">124</span>
-                            <span className="text-xs text-slate-400 font-medium uppercase tracking-wide">Connections</span>
+                            <span className="text-lg font-bold">{followerCount}</span>
+                            <span className="text-xs text-slate-400 font-medium uppercase tracking-wide">Followers</span>
                         </div>
                         <div className="flex flex-col items-center">
-                            <span className="text-lg font-bold">45</span>
-                            <span className="text-xs text-slate-400 font-medium uppercase tracking-wide">{profile.role === 'Agent' ? 'Roster' : 'Highlights'}</span>
+                            <span className="text-lg font-bold">{followingCount}</span>
+                            <span className="text-xs text-slate-400 font-medium uppercase tracking-wide">Following</span>
                         </div>
                         <div className="flex flex-col items-center">
-                            <span className="text-lg font-bold">12</span>
-                            <span className="text-xs text-slate-400 font-medium uppercase tracking-wide">{profile.role === 'Agent' ? 'Deals' : 'Clubs'}</span>
+                            <span className="text-lg font-bold">{posts.length}</span>
+                            <span className="text-xs text-slate-400 font-medium uppercase tracking-wide">Highlights</span>
                         </div>
                     </div>
 
