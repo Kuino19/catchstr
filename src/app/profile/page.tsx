@@ -4,6 +4,7 @@ import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import ThemeToggle from '@/components/ThemeToggle';
+import PostCard from '@/components/PostCard';
 
 interface Profile {
     id: string;
@@ -16,8 +17,18 @@ interface Profile {
     banner_url: string;
 }
 
+interface Post {
+    id: string;
+    content: string;
+    media_url: string;
+    likes_count: number;
+    created_at: string;
+    profiles: Profile;
+}
+
 export default function ProfilePage() {
     const [profile, setProfile] = useState<Profile | null>(null);
+    const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -25,14 +36,26 @@ export default function ProfilePage() {
             const { data: { session } } = await supabase.auth.getSession();
 
             if (session?.user) {
-                const { data, error } = await supabase
+                // Fetch Profile
+                const { data: profileData } = await supabase
                     .from('profiles')
                     .select('*')
                     .eq('id', session.user.id)
                     .single();
 
-                if (data && !error) {
-                    setProfile(data as Profile);
+                if (profileData) {
+                    setProfile(profileData as Profile);
+                }
+
+                // Fetch Posts
+                const { data: postsData } = await supabase
+                    .from('posts')
+                    .select(`*, profiles:author_id (*)`)
+                    .eq('author_id', session.user.id)
+                    .order('created_at', { ascending: false });
+
+                if (postsData) {
+                    setPosts(postsData as unknown as Post[]);
                 }
             }
             setLoading(false);
@@ -161,13 +184,27 @@ export default function ProfilePage() {
 
             <main className="px-4 py-6 flex flex-col gap-6">
                 <section>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-bold">Activity</h3>
-                        <button className="text-pitch-green text-xs font-semibold hover:text-primary transition-colors">View All</button>
+                    <div className="flex items-center justify-between mb-4 px-2">
+                        <h3 className="text-xl font-bold">My Highlights</h3>
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{posts.length} Posts</span>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-center gap-4 text-center opacity-70">
-                        <div className="text-sm">Activity feed coming soon...</div>
+                    <div className="flex flex-col gap-8">
+                        {posts.length === 0 ? (
+                            <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 text-center opacity-60">
+                                <span className="material-symbols-outlined text-4xl mb-2">movie_filter</span>
+                                <p className="text-sm">No highlights posted yet.</p>
+                                <Link href="/create" className="text-primary font-bold text-sm mt-2 block">Create your first post</Link>
+                            </div>
+                        ) : (
+                            posts.map((post) => (
+                                <PostCard
+                                    key={post.id}
+                                    post={post}
+                                    currentUserId={profile?.id || null}
+                                />
+                            ))
+                        )}
                     </div>
                 </section>
             </main>

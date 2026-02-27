@@ -4,6 +4,7 @@ import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import PostCard from '@/components/PostCard';
 
 interface Profile {
     id: string;
@@ -16,14 +17,24 @@ interface Profile {
     bio: string;
 }
 
+interface Post {
+    id: string;
+    content: string;
+    media_url: string;
+    likes_count: number;
+    created_at: string;
+    profiles: Profile;
+}
+
 export default function PublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
     const { id: profileId } = use(params);
     const router = useRouter();
 
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
+    const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isFollowing, setIsFollowing] = useState(false);
+    const [followStatus, setFollowStatus] = useState<'none' | 'pending' | 'accepted'>('none');
     const [followersCount, setFollowersCount] = useState(0);
 
     useEffect(() => {
@@ -35,7 +46,6 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
                 myId = session.user.id;
                 setCurrentUserId(myId);
 
-                // If it's my own profile, redirect to /profile
                 if (myId === profileId) {
                     router.replace('/profile');
                     return;
@@ -43,35 +53,47 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
             }
 
             // Fetch profile
-            const { data: profileData, error: profileError } = await supabase
+            const { data: profileData } = await supabase
                 .from('profiles')
                 .select('*')
                 .eq('id', profileId)
                 .single();
 
-            if (profileData && !profileError) {
+            if (profileData) {
                 setProfile(profileData as Profile);
             }
 
-            // Fetch followers count
+            // Fetch posts
+            const { data: postsData } = await supabase
+                .from('posts')
+                .select(`*, profiles:author_id (*)`)
+                .eq('author_id', profileId)
+                .order('created_at', { ascending: false });
+
+            if (postsData) {
+                setPosts(postsData as unknown as Post[]);
+            }
+
+            // Fetch followers count (only accepted)
             const { count: followers } = await supabase
                 .from('follows')
                 .select('*', { count: 'exact', head: true })
-                .eq('following_id', profileId);
+                .eq('following_id', profileId)
+                .eq('status', 'accepted');
 
             setFollowersCount(followers || 0);
 
-            // Fetch if current user is following this profile
+            // Fetch follow status
             if (myId) {
                 const { data: followData } = await supabase
                     .from('follows')
-                    .select('*')
+                    .select('status')
                     .eq('follower_id', myId)
                     .eq('following_id', profileId)
                     .single();
 
                 if (followData) {
-                    setIsFollowing(true);
+                    setFollowStatus(followData.status);
                 }
             }
 
@@ -87,10 +109,11 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
             return;
         }
 
-        if (isFollowing) {
-            // Unfollow
-            setIsFollowing(false);
-            setFollowersCount(prev => prev - 1);
+        if (followStatus === 'accepted' || followStatus === 'pending') {
+            // Unfollow / Cancel Request
+            const prevStatus = followStatus;
+            setFollowStatus('none');
+            if (prevStatus === 'accepted') setFollowersCount(prev => prev - 1);
 
             await supabase
                 .from('follows')
@@ -98,9 +121,8 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
                 .eq('follower_id', currentUserId)
                 .eq('following_id', profileId);
         } else {
-            // Follow
-            setIsFollowing(true);
-            setFollowersCount(prev => prev + 1);
+            // Connect Request
+            setFollowStatus('pending');
 
             const { error } = await supabase
                 .from('follows')
@@ -108,11 +130,11 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
                     {
                         follower_id: currentUserId,
                         following_id: profileId,
+                        status: 'pending'
                     }
                 ]);
 
             if (!error) {
-                // Insert Notification
                 await supabase.from('notifications').insert([{
                     user_id: profileId,
                     actor_id: currentUserId,
@@ -212,15 +234,15 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
                     <div className="grid grid-cols-2 gap-3 w-full mt-6">
                         <button
                             onClick={handleFollowToggle}
-                            className={`py-3 px-4 rounded-xl font-semibold text-sm shadow-sm transition-all flex items-center justify-center gap-2 ${isFollowing
+                            className={`py-3 px-4 rounded-xl font-semibold text-sm shadow-sm transition-all flex items-center justify-center gap-2 ${followStatus !== 'none'
                                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-700'
                                 : 'bg-primary text-white hover:bg-blue-600 shadow-primary/30'
                                 }`}
                         >
                             <span className="material-symbols-outlined text-[18px]">
-                                {isFollowing ? 'group_remove' : 'person_add'}
+                                {followStatus === 'accepted' ? 'group_remove' : followStatus === 'pending' ? 'hourglass_top' : 'person_add'}
                             </span>
-                            {isFollowing ? 'Connected' : 'Connect'}
+                            {followStatus === 'accepted' ? 'Connected' : followStatus === 'pending' ? 'Requested' : 'Connect'}
                         </button>
                         <Link href={`/chat/${profileId}`} className="bg-pitch-green/10 hover:bg-pitch-green/20 text-pitch-green dark:text-[#34d399] py-3 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 border border-pitch-green/20">
                             <span className="material-symbols-outlined text-[18px]">chat_bubble</span>
@@ -232,13 +254,26 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
 
             <main className="px-4 py-6 flex flex-col gap-6">
                 <section>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-bold">Activity</h3>
-                        <button className="text-pitch-green text-xs font-semibold hover:text-primary transition-colors">View All</button>
+                    <div className="flex items-center justify-between mb-4 px-2">
+                        <h3 className="text-xl font-bold">Highlights</h3>
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{posts.length} Posts</span>
                     </div>
 
-                    <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center justify-center gap-4 text-center opacity-70">
-                        <div className="text-sm">Activity feed coming soon...</div>
+                    <div className="flex flex-col gap-8">
+                        {posts.length === 0 ? (
+                            <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 text-center opacity-60">
+                                <span className="material-symbols-outlined text-4xl mb-2">movie_filter</span>
+                                <p className="text-sm">No highlights available yet.</p>
+                            </div>
+                        ) : (
+                            posts.map((post) => (
+                                <PostCard
+                                    key={post.id}
+                                    post={post}
+                                    currentUserId={currentUserId}
+                                />
+                            ))
+                        )}
                     </div>
                 </section>
             </main>

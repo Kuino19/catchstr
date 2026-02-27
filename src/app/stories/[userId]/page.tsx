@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState, use, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import Image from 'next/image';
 
 interface Profile {
     id: string;
@@ -24,6 +25,7 @@ export default function StoryViewerPage({ params }: { params: Promise<{ userId: 
     const [stories, setStories] = useState<Story[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
     // Time progress bar state
     const [progress, setProgress] = useState(0);
@@ -31,6 +33,9 @@ export default function StoryViewerPage({ params }: { params: Promise<{ userId: 
 
     useEffect(() => {
         async function fetchStories() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) setCurrentUserId(session.user.id);
+
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
 
@@ -90,6 +95,29 @@ export default function StoryViewerPage({ params }: { params: Promise<{ userId: 
         }
     };
 
+    const handleDeleteStory = async (storyId: string) => {
+        if (!confirm('Delete this story?')) return;
+
+        const { error } = await supabase
+            .from('stories')
+            .delete()
+            .eq('id', storyId);
+
+        if (error) {
+            alert('Error deleting story: ' + error.message);
+        } else {
+            // Remove from local state
+            const updatedStories = stories.filter(s => s.id !== storyId);
+            if (updatedStories.length === 0) {
+                router.push('/');
+            } else {
+                setStories(updatedStories);
+                setCurrentIndex(prev => Math.min(prev, updatedStories.length - 1));
+                setProgress(0);
+            }
+        }
+    };
+
     if (loading) {
         return (
             <div className="bg-black min-h-screen flex items-center justify-center">
@@ -125,18 +153,34 @@ export default function StoryViewerPage({ params }: { params: Promise<{ userId: 
                 {/* Profile Info & Close Base */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-800">
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-800 relative">
                             {currentStory.profiles?.avatar_url ? (
-                                <img src={currentStory.profiles.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                                <Image
+                                    src={currentStory.profiles.avatar_url}
+                                    alt="Profile"
+                                    fill
+                                    className="object-cover"
+                                />
                             ) : (
                                 <span className="material-symbols-outlined text-slate-400 m-2">person</span>
                             )}
                         </div>
                         <p className="font-semibold text-sm shadow-sm">{currentStory.profiles?.full_name}</p>
                     </div>
-                    <button onClick={() => router.push('/')} className="p-2 hover:bg-white/10 rounded-full transition">
-                        <span className="material-symbols-outlined text-white">close</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                        {currentUserId === currentStory.author_id && (
+                            <button
+                                onClick={() => handleDeleteStory(currentStory.id)}
+                                className="p-2 hover:bg-red-500/20 text-red-400 rounded-full transition"
+                                title="Delete Story"
+                            >
+                                <span className="material-symbols-outlined">delete</span>
+                            </button>
+                        )}
+                        <button onClick={() => router.push('/')} className="p-2 hover:bg-white/10 rounded-full transition">
+                            <span className="material-symbols-outlined text-white">close</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -149,15 +193,30 @@ export default function StoryViewerPage({ params }: { params: Promise<{ userId: 
                         autoPlay
                         muted
                         playsInline
+                        preload="auto"
                         className="absolute inset-0 w-full h-full object-contain"
                     />
                 ) : currentStory.media_url ? (
-                    <img
+                    <Image
                         src={currentStory.media_url}
                         alt="Story Content"
-                        className="absolute inset-0 w-full h-full object-contain"
+                        fill
+                        className="object-contain"
+                        priority
+                        quality={90}
                     />
                 ) : null}
+
+                {/* Preload Next Content */}
+                {currentIndex < stories.length - 1 && (
+                    <div className="hidden">
+                        {stories[currentIndex + 1].media_url?.includes('.mp4') ? (
+                            <video src={stories[currentIndex + 1].media_url!} preload="auto" />
+                        ) : (
+                            <img src={stories[currentIndex + 1].media_url!} />
+                        )}
+                    </div>
+                )}
 
                 {/* Text Overlay (if content exists, or if text-only story) */}
                 {currentStory.content && (

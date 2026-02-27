@@ -80,7 +80,8 @@ export default function NotificationsPage() {
 
     const getNotificationText = (type: string, actorName: string) => {
         switch (type) {
-            case 'follow': return <span className="text-sm"><span className="font-bold text-slate-900 dark:text-white">{actorName}</span> started following you.</span>;
+            case 'follow': return <span className="text-sm"><span className="font-bold text-slate-900 dark:text-white">{actorName}</span> sent you a connection request.</span>;
+            case 'follow_accepted': return <span className="text-sm">You accepted <span className="font-bold text-slate-900 dark:text-white">{actorName}</span>'s request.</span>;
             case 'like': return <span className="text-sm"><span className="font-bold text-slate-900 dark:text-white">{actorName}</span> liked your highlight.</span>;
             case 'message': return <span className="text-sm"><span className="font-bold text-slate-900 dark:text-white">{actorName}</span> sent you a message.</span>;
             default: return <span className="text-sm"><span className="font-bold text-slate-900 dark:text-white">{actorName}</span> interacted with your profile.</span>;
@@ -90,9 +91,39 @@ export default function NotificationsPage() {
     const getNotificationIcon = (type: string) => {
         switch (type) {
             case 'follow': return <span className="material-symbols-outlined text-primary text-[18px]">person_add</span>;
+            case 'follow_accepted': return <span className="material-symbols-outlined text-pitch-green text-[18px]">check_circle</span>;
             case 'like': return <span className="material-symbols-outlined text-red-500 text-[18px] filled">favorite</span>;
             case 'message': return <span className="material-symbols-outlined text-blue-500 text-[18px]">chat_bubble</span>;
             default: return <span className="material-symbols-outlined text-slate-500 text-[18px]">notifications</span>;
+        }
+    };
+
+    const handleAcceptFollow = async (notif: Notification) => {
+        // Update follow status
+        const { error: followError } = await supabase
+            .from('follows')
+            .update({ status: 'accepted' })
+            .eq('follower_id', notif.actor_id)
+            .eq('following_id', (await supabase.auth.getUser()).data.user?.id);
+
+        if (!followError) {
+            // Update local state to remove action buttons or update text
+            setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, type: 'follow_accepted' } : n));
+        }
+    };
+
+    const handleDeclineFollow = async (notif: Notification) => {
+        // Delete follow record
+        const { error: followError } = await supabase
+            .from('follows')
+            .delete()
+            .eq('follower_id', notif.actor_id)
+            .eq('following_id', (await supabase.auth.getUser()).data.user?.id);
+
+        if (!followError) {
+            // Delete notification as well or update local state
+            setNotifications(prev => prev.filter(n => n.id !== notif.id));
+            await supabase.from('notifications').delete().eq('id', notif.id);
         }
     };
 
@@ -105,7 +136,7 @@ export default function NotificationsPage() {
                 <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Notifications</h1>
             </header>
 
-            <main className="flex flex-col pt-2">
+            <main className="flex flex-col pt-2 max-w-2xl mx-auto w-full">
                 {loading ? (
                     <div className="flex justify-center p-8">
                         <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
@@ -132,8 +163,33 @@ export default function NotificationsPage() {
                                 </div>
                             </Link>
                             <div className="flex flex-col flex-1 pt-0.5">
-                                {getNotificationText(notif.type, notif.actor?.full_name || 'Someone')}
-                                <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatTimeAgo(notif.created_at)}</span>
+                                {notif.type === 'follow' ? (
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div>
+                                            {getNotificationText(notif.type, notif.actor?.full_name || 'Someone')}
+                                            <span className="block text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatTimeAgo(notif.created_at)}</span>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleAcceptFollow(notif)}
+                                                className="bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors shadow-sm"
+                                            >
+                                                Accept
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeclineFollow(notif)}
+                                                className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold px-4 py-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                            >
+                                                Decline
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {getNotificationText(notif.type, notif.actor?.full_name || 'Someone')}
+                                        <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{formatTimeAgo(notif.created_at)}</span>
+                                    </>
+                                )}
                             </div>
                         </div>
                     ))

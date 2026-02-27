@@ -12,25 +12,35 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
     const [isMuted, setIsMuted] = useState(true);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
+    const playPromiseRef = useRef<Promise<void> | null>(null);
 
     // Auto-play / pause based on intersection observer
     useEffect(() => {
         const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
+            async (entries) => {
+                for (const entry of entries) {
                     if (videoRef.current) {
                         if (entry.isIntersecting) {
-                            videoRef.current.play().catch(() => {
-                                // Autoplay was probably blocked by browser policy without user interaction
+                            try {
+                                playPromiseRef.current = videoRef.current.play();
+                                await playPromiseRef.current;
+                                setIsPlaying(true);
+                            } catch (error) {
+                                // Autoplay might be blocked
                                 setIsPlaying(false);
-                            });
-                            setIsPlaying(true);
+                            } finally {
+                                playPromiseRef.current = null;
+                            }
                         } else {
+                            // If there's a pending play promise, wait before pausing
+                            if (playPromiseRef.current) {
+                                try { await playPromiseRef.current; } catch (e) { }
+                            }
                             videoRef.current.pause();
                             setIsPlaying(false);
                         }
                     }
-                });
+                }
             },
             { threshold: 0.6 } // Play when 60% of the video is visible
         );
@@ -44,15 +54,26 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
         };
     }, []);
 
-    const togglePlay = (e: React.MouseEvent) => {
+    const togglePlay = async (e: React.MouseEvent) => {
         e.stopPropagation();
         if (videoRef.current) {
             if (isPlaying) {
+                if (playPromiseRef.current) {
+                    try { await playPromiseRef.current; } catch (e) { }
+                }
                 videoRef.current.pause();
+                setIsPlaying(false);
             } else {
-                videoRef.current.play();
+                try {
+                    playPromiseRef.current = videoRef.current.play();
+                    await playPromiseRef.current;
+                    setIsPlaying(true);
+                } catch (err) {
+                    console.error("Playback failed:", err);
+                } finally {
+                    playPromiseRef.current = null;
+                }
             }
-            setIsPlaying(!isPlaying);
         }
     };
 
@@ -96,6 +117,7 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
                 loop
                 muted={isMuted}
                 playsInline
+                preload="metadata"
                 onTimeUpdate={handleTimeUpdate}
             />
 

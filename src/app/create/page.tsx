@@ -16,16 +16,41 @@ export default function CreateHighlightPage() {
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Video Trimming State
+    const [duration, setDuration] = useState(0);
+    const [startTime, setStartTime] = useState(0);
+    const [endTime, setEndTime] = useState(60);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const selectedFile = e.target.files[0];
+            const url = URL.createObjectURL(selectedFile);
             setFile(selectedFile);
-            setPreviewUrl(URL.createObjectURL(selectedFile));
+            setPreviewUrl(url);
+
+            if (selectedFile.type.startsWith('video/')) {
+                const tempVideo = document.createElement('video');
+                tempVideo.src = url;
+                tempVideo.onloadedmetadata = () => {
+                    const dur = tempVideo.duration;
+                    setDuration(dur);
+                    setStartTime(0);
+                    // Default to 60s or full duration
+                    setEndTime(isStory ? Math.min(dur, 60) : dur);
+                };
+            }
         }
     };
 
     const handleUpload = async () => {
         if (!file && !content.trim()) return;
+
+        // Validation for stories
+        if (isStory && file?.type.startsWith('video/') && (endTime - startTime) > 60) {
+            alert('Stories cannot be longer than 60 seconds. Please trim your video.');
+            return;
+        }
 
         setUploading(true);
         try {
@@ -72,7 +97,8 @@ export default function CreateHighlightPage() {
                         {
                             author_id: session.user.id,
                             media_url: publicUrl,
-                            content: content.trim() || null
+                            content: content.trim() || null,
+                            // Store trim metadata if needed, for now we just restrict duration
                         }
                     ]);
                 if (insertError) throw insertError;
@@ -98,7 +124,6 @@ export default function CreateHighlightPage() {
 
             // Success! 
             alert(isStory ? 'Story posted successfully!' : 'Post shared with the world!');
-            // Force a hard redirect back to feed to bypass Next.js client caching
             window.location.href = '/';
         } catch (error: any) {
             console.error('Upload failed:', error);
@@ -129,7 +154,7 @@ export default function CreateHighlightPage() {
                 </button>
             </header>
 
-            <main className="flex-1 flex flex-col p-4 overflow-y-auto no-scrollbar">
+            <main className="flex-1 flex flex-col p-4 overflow-y-auto no-scrollbar pb-24">
 
                 <textarea
                     placeholder={isStory ? "Type your story context here..." : "What do you want to share with your network?"}
@@ -163,15 +188,79 @@ export default function CreateHighlightPage() {
                         <p className="text-sm text-slate-500 mt-1">Images or short video clips</p>
                     </div>
                 ) : (
-                    <div className="relative mt-4 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-sm">
+                    <div className="relative mt-4 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-sm p-2">
                         {file?.type.startsWith('video') ? (
-                            <video src={previewUrl} controls className="w-full max-h-[400px] object-contain" />
+                            <div className="flex flex-col gap-4">
+                                <video
+                                    ref={videoRef}
+                                    src={previewUrl}
+                                    className="w-full max-h-[300px] object-contain rounded-xl"
+                                    onTimeUpdate={() => {
+                                        if (videoRef.current && videoRef.current.currentTime >= endTime) {
+                                            videoRef.current.currentTime = startTime;
+                                        }
+                                    }}
+                                />
+
+                                <div className="px-2 pb-2">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Cut Clip ({Math.round(endTime - startTime)}s)</h3>
+                                        <div className="text-[10px] font-mono bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                            {startTime.toFixed(1)}s - {endTime.toFixed(1)}s
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-[10px] text-slate-400">Start Time</span>
+                                            <input
+                                                type="range"
+                                                min="0"
+                                                max={duration}
+                                                step="0.1"
+                                                value={startTime}
+                                                onChange={(e) => {
+                                                    const val = parseFloat(e.target.value);
+                                                    setStartTime(val);
+                                                    if (val >= endTime) setEndTime(Math.min(val + 1, duration));
+                                                    if (videoRef.current) videoRef.current.currentTime = val;
+                                                }}
+                                                className="w-full accent-primary"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-[10px] text-slate-400">End Time {isStory && <span className="text-red-500 font-bold ml-1">(Max 60s)</span>}</span>
+                                            <input
+                                                type="range"
+                                                min="0.1"
+                                                max={duration}
+                                                step="0.1"
+                                                value={endTime}
+                                                onChange={(e) => {
+                                                    const val = parseFloat(e.target.value);
+                                                    setEndTime(val);
+                                                    if (val <= startTime) setStartTime(Math.max(0, val - 1));
+                                                    if (videoRef.current) videoRef.current.currentTime = val;
+                                                }}
+                                                className="w-full accent-primary"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {isStory && (endTime - startTime) > 60 && (
+                                        <p className="text-[10px] text-red-500 font-bold mt-2 flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-sm">warning</span>
+                                            Clip exceeds 1 minute limit for stories!
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
                         ) : (
                             <img src={previewUrl} alt="Preview" className="w-full max-h-[400px] object-contain" />
                         )}
                         <button
                             onClick={() => { setFile(null); setPreviewUrl(null); }}
-                            className="absolute top-2 right-2 w-8 h-8 bg-black/50 backdrop-blur-md rounded-full text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+                            className="absolute top-4 right-4 w-8 h-8 bg-black/50 backdrop-blur-md rounded-full text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10"
                         >
                             <span className="material-symbols-outlined text-sm">close</span>
                         </button>

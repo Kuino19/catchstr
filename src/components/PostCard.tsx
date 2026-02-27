@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import Image from 'next/image';
 import VideoPlayer from '@/components/VideoPlayer';
 
 interface Profile {
@@ -230,7 +231,14 @@ export default function PostCard({ post: initialPost, currentUserId }: PostCardP
                 <Link href={`/profile/${post.profiles?.id}`} className="flex items-center gap-3">
                     <div className="relative">
                         {post.profiles?.avatar_url ? (
-                            <img alt={`${post.profiles.full_name} profile`} className="h-10 w-10 rounded-full object-cover ring-2 ring-slate-100 dark:ring-slate-800" src={post.profiles.avatar_url} />
+                            <Image
+                                alt={`${post.profiles.full_name} profile`}
+                                className="h-10 w-10 rounded-full object-cover ring-2 ring-slate-100 dark:ring-slate-800"
+                                src={post.profiles.avatar_url}
+                                width={40}
+                                height={40}
+                                priority={false}
+                            />
                         ) : (
                             <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
                                 <span className="material-symbols-outlined text-slate-400">person</span>
@@ -256,9 +264,35 @@ export default function PostCard({ post: initialPost, currentUserId }: PostCardP
                         </p>
                     </div>
                 </Link>
-                <button className="text-slate-400 hover:text-white transition-colors">
-                    <span className="material-symbols-outlined">more_horiz</span>
-                </button>
+                {currentUserId === post.profiles.id && (
+                    <button
+                        onClick={async () => {
+                            if (confirm('Are you sure you want to delete this highlight?')) {
+                                try {
+                                    const { error } = await supabase
+                                        .from('posts')
+                                        .delete()
+                                        .eq('id', post.id);
+
+                                    if (error) throw error;
+                                    // Soft refresh or hide post
+                                    window.location.reload();
+                                } catch (err: any) {
+                                    alert('Failed to delete: ' + err.message);
+                                }
+                            }
+                        }}
+                        className="text-red-500 hover:text-red-700 transition-colors flex items-center gap-1 text-xs font-bold"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                        Delete
+                    </button>
+                )}
+                {currentUserId !== post.profiles.id && (
+                    <button className="text-slate-400 hover:text-white transition-colors">
+                        <span className="material-symbols-outlined">more_horiz</span>
+                    </button>
+                )}
             </div>
 
             {/* Media Content */}
@@ -267,11 +301,16 @@ export default function PostCard({ post: initialPost, currentUserId }: PostCardP
                     {post.media_url.match(/\.(mp4|webm|ogg|mov)$/i) ? (
                         <VideoPlayer src={post.media_url} />
                     ) : (
-                        <img
-                            src={post.media_url}
-                            alt="Post media"
-                            className="w-full max-h-[600px] object-cover"
-                        />
+                        <div className="relative w-full aspect-square sm:aspect-video overflow-hidden">
+                            <Image
+                                src={post.media_url}
+                                alt="Post media"
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                quality={75}
+                            />
+                        </div>
                     )}
 
                     {post.profiles.role === 'Player' && post.media_url.match(/\.(mp4|webm|ogg|mov)$/i) && (
@@ -347,7 +386,13 @@ export default function PostCard({ post: initialPost, currentUserId }: PostCardP
                                 comments.map(comment => (
                                     <div key={comment.id} className="flex gap-2">
                                         {comment.profiles.avatar_url ? (
-                                            <img src={comment.profiles.avatar_url} className="w-8 h-8 rounded-full object-cover shrink-0 mt-0.5" alt="Avatar" />
+                                            <Image
+                                                src={comment.profiles.avatar_url}
+                                                className="w-8 h-8 rounded-full object-cover shrink-0 mt-0.5"
+                                                alt="Avatar"
+                                                width={32}
+                                                height={32}
+                                            />
                                         ) : (
                                             <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex flex-shrink-0 items-center justify-center mt-0.5">
                                                 <span className="material-symbols-outlined text-[16px] text-slate-400">person</span>

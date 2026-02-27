@@ -135,7 +135,7 @@ export default function ChatPage() {
                                 <div className="text-center p-8 text-slate-500 text-sm">No connections found in this category.</div>
                             ) : (
                                 filteredConnections.map((conn) => (
-                                    <Link key={conn.id} className="group flex items-center gap-4 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors relative" href={`/profile/${conn.id}`}>
+                                    <Link key={conn.id} className="group flex items-center gap-4 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors relative" href={`/chat/${conn.id}`}>
                                         <div className="relative flex-shrink-0">
                                             {conn.avatar_url ? (
                                                 <img alt={conn.full_name} className="w-14 h-14 rounded-full object-cover bg-surface-dark" src={conn.avatar_url} />
