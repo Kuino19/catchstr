@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import BottomNav from '@/components/BottomNav';
 
 export default function PrivacyPolicyPage() {
     return (
@@ -43,8 +42,6 @@ export default function PrivacyPolicyPage() {
                     </p>
                 </div>
             </main>
-
-            <BottomNav />
         </div>
     );
 }

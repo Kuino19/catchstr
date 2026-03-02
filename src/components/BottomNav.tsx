@@ -10,8 +10,8 @@ export default function BottomNav({ active = 'feed' }: { active?: string }) {
     ];
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-between items-center z-50 lg:hidden rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-            <div className="flex justify-around items-end">
+        <nav className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 px-2 py-3 z-50 lg:hidden rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+            <div className="flex justify-between items-end w-full max-w-md mx-auto">
                 {navItems.map((item) => {
                     const isActive = active === item.id;
 

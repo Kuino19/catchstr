@@ -2,10 +2,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
+import LiveRings from './live/LiveRings';
 
 const navItems = [
     { name: 'Home', href: '/', icon: 'home' },
     { name: 'Discover', href: '/discover', icon: 'explore' },
+    { name: 'Live', href: '/live', icon: 'cell_tower' },
     { name: 'Messages', href: '/chat', icon: 'chat_bubble' },
     { name: 'Notifications', href: '/notifications', icon: 'notifications' },
     { name: 'Saved', href: '/saved', icon: 'bookmark' },
@@ -34,8 +36,8 @@ export default function LeftSidebar() {
                             key={item.href}
                             href={item.href}
                             className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 group ${isActive
-                                    ? 'bg-primary text-white shadow-md shadow-primary/20'
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                                ? 'bg-primary text-white shadow-md shadow-primary/20'
+                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                                 }`}
                         >
                             <span className={`material-symbols-outlined text-[26px] ${isActive ? 'filled' : ''}`}>
@@ -53,7 +55,17 @@ export default function LeftSidebar() {
                     <span className="material-symbols-outlined">add_circle</span>
                     Share Highlight
                 </Link>
+
+                <Link
+                    href="/live/studio"
+                    className="mt-4 flex items-center justify-center gap-2 bg-red-500/10 text-red-500 border border-red-500/20 py-4 rounded-full font-bold text-lg hover:bg-red-500 hover:text-white transition-all group"
+                >
+                    <span className="material-symbols-outlined group-hover:animate-pulse">podcasts</span>
+                    Go Live
+                </Link>
             </nav>
+
+            <LiveRings />
 
             {/* Footer / Theme Toggle */}
             <div className="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between px-2">

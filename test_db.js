@@ -1,0 +1,1 @@
+const { createClient } = require('@supabase/supabase-js'); const s = createClient('https://iwrtrcynjwicnsuzpfju.supabase.co', 'sb_publishable_SZvWkp3ZiEpPFEqJeIH0oA_VJjkqni5'); s.from('profiles').select('*').limit(3).then(d = 

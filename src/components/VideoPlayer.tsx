@@ -12,6 +12,7 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
     const [isMuted, setIsMuted] = useState(true);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [playbackRate, setPlaybackRate] = useState(1);
     const playPromiseRef = useRef<Promise<void> | null>(null);
 
     // Auto-play / pause based on intersection observer
@@ -104,6 +105,17 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
         }
     };
 
+    const togglePlaybackRate = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const rates = [0.5, 1, 1.5, 2];
+        const nextIndex = (rates.indexOf(playbackRate) + 1) % rates.length;
+        const nextRate = rates[nextIndex];
+        if (videoRef.current) {
+            videoRef.current.playbackRate = nextRate;
+        }
+        setPlaybackRate(nextRate);
+    };
+
     return (
         <div
             ref={containerRef}
@@ -119,6 +131,7 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
                 playsInline
                 preload="metadata"
                 onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={(e) => (e.currentTarget.playbackRate = playbackRate)}
             />
 
             {/* Play/Pause Overlay */}
@@ -159,14 +172,23 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
                         </span>
                     </button>
 
-                    <button
-                        onClick={toggleMute}
-                        className="text-white hover:text-primary transition-colors focus:outline-none"
-                    >
-                        <span className="material-symbols-outlined filled text-[24px]">
-                            {isMuted ? 'volume_off' : 'volume_up'}
-                        </span>
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={togglePlaybackRate}
+                            className="bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold px-2 py-1 rounded border border-white/20 transition-all flex items-center justify-center min-w-[36px]"
+                        >
+                            {playbackRate}x
+                        </button>
+
+                        <button
+                            onClick={toggleMute}
+                            className="text-white hover:text-primary transition-colors focus:outline-none"
+                        >
+                            <span className="material-symbols-outlined filled text-[24px]">
+                                {isMuted ? 'volume_off' : 'volume_up'}
+                            </span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
