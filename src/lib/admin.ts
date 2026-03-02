@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 
 // Admin client that bypasses RLS. ONLY USE IN API ROUTES, NEVER IN CLIENT COMPONENTS
 export const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy_service_role_key'
 );
 
 export async function logAdminAction(
