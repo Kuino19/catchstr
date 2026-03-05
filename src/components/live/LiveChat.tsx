@@ -30,7 +30,7 @@ export default function LiveChat({ streamId, currentUser, isModerator = false }:
         const fetchMessages = async () => {
             const { data, error } = await supabase
                 .from('live_chat')
-                .select('*')
+                .select('id, created_at, stream_id, user_id, user_name, message')
                 .eq('stream_id', streamId)
                 .order('created_at', { ascending: true });
 

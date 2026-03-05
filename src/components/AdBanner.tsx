@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 
 interface Ad {
@@ -9,48 +9,40 @@ interface Ad {
     link_url: string;
 }
 
-export default function AdBanner() {
-    const [ad, setAd] = useState<Ad | null>(null);
+interface AdBannerProps {
+    // ✅ Ad is now passed as a prop from the parent — no per-render DB fetch
+    ad: Ad;
+}
 
-    useEffect(() => {
-        async function fetchRandomAd() {
-            // Get a random active ad
-            const { data } = await supabase
-                .from('ads')
-                .select('*')
-                .eq('is_active', true)
-                .limit(5); // Get a few and pick one locally for randomness
-
-            if (data && data.length > 0) {
-                const random = data[Math.floor(Math.random() * data.length)];
-                setAd(random);
-
-                // Increment impressions
-                await supabase.rpc('increment_ad_impressions', { ad_id: random.id });
-            }
-        }
-        fetchRandomAd();
-    }, []);
-
+export default function AdBanner({ ad }: AdBannerProps) {
     const handleClick = async () => {
-        if (ad) {
-            await supabase.rpc('increment_ad_clicks', { ad_id: ad.id });
-            window.open(ad.link_url, '_blank');
-        }
+        // Track the click server-side (fire-and-forget)
+        supabase.rpc('increment_ad_clicks', { ad_id: ad.id }).then(() => { });
+        window.open(ad.link_url, '_blank', 'noopener,noreferrer');
     };
 
-    if (!ad) return null;
+    // Track impression once on mount
+    const handleImpression = () => {
+        supabase.rpc('increment_ad_impressions', { ad_id: ad.id }).then(() => { });
+    };
 
     return (
         <div
             onClick={handleClick}
+            ref={(el) => { if (el) handleImpression(); }}
             className="w-full bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-500 hover:-translate-y-1 relative"
         >
             <div className="absolute top-3 right-4 z-10">
                 <span className="bg-slate-900/60 backdrop-blur-md text-white text-[8px] font-black px-2 py-0.5 rounded-full border border-white/10 uppercase tracking-widest">Sponsored</span>
             </div>
-            <div className="h-48 w-full overflow-hidden">
-                <img src={ad.image_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={ad.title} />
+            <div className="h-48 w-full overflow-hidden relative">
+                <Image
+                    src={ad.image_url}
+                    alt={ad.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    sizes="(max-width: 768px) 100vw, 672px"
+                />
             </div>
             <div className="p-5 flex items-center justify-between">
                 <div>

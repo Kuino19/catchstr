@@ -46,7 +46,7 @@ export default function LoginPage() {
                 {/* Background Image */}
                 <div
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 scale-105"
-                    style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1574629810360-7efbc5381395?q=80&w=2574&auto=format&fit=crop")' }}
+                    style={{ backgroundImage: 'url("/football-field.png")' }}
                 />
                 {/* High-end Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent" />
@@ -80,11 +80,25 @@ export default function LoginPage() {
             <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-6 sm:px-12 lg:px-24 xl:px-32 py-12 relative z-10 bg-white dark:bg-[#0A0F1A]">
 
                 {/* Mobile Header (Only visible on small screens) */}
-                <div className="lg:hidden flex flex-col items-center mb-10">
-                    <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-xl mb-4">
-                        <span className="material-symbols-outlined text-slate-900 text-3xl font-black">sports_soccer</span>
+                <div className="lg:hidden w-full max-w-sm mx-auto mb-8 relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800">
+                    {/* Explicitly setting minHeight so the block definitely takes up space */}
+                    <div className="relative w-full min-h-[220px]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                            src="/football-field.png"
+                            alt="Catchstr Football Field"
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        {/* Gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-black/20" />
+
+                        <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center">
+                            <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-xl mb-3 transform -rotate-3 border-2 border-slate-800">
+                                <span className="material-symbols-outlined text-slate-900 text-2xl font-black">sports_soccer</span>
+                            </div>
+                            <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-lg">catchstr</h1>
+                        </div>
                     </div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">catchstr</h1>
                 </div>
 
                 <div className="w-full max-w-md">

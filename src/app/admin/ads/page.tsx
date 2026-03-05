@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import toast from 'react-hot-toast';
+import { useConfirm } from '@/components/ConfirmDialog';
 
 interface Ad {
     id: string;
@@ -18,10 +20,14 @@ export default function AdsPage() {
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
     const [newAd, setNewAd] = useState({ title: '', image_url: '', link_url: '' });
+    const { confirm: confirmDialog, DialogComponent } = useConfirm();
 
     async function fetchAds() {
         setLoading(true);
-        const { data } = await supabase.from('ads').select('*').order('created_at', { ascending: false });
+        const { data } = await supabase
+            .from('ads')
+            .select('id, title, image_url, link_url, is_active, impressions_count, clicks_count, created_at')
+            .order('created_at', { ascending: false });
         if (data) setAds(data);
         setLoading(false);
     }
@@ -48,10 +54,19 @@ export default function AdsPage() {
     };
 
     const deleteAd = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this ad?')) return;
+        const ok = await confirmDialog({
+            title: 'Delete ad campaign?',
+            message: 'This ad will be permanently removed and all its data will be lost.',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!ok) return;
         const { error } = await supabase.from('ads').delete().eq('id', id);
         if (!error) {
             setAds(ads.filter(ad => ad.id !== id));
+            toast.success('Ad deleted.');
+        } else {
+            toast.error('Failed to delete ad.');
         }
     };
 
@@ -172,6 +187,7 @@ export default function AdsPage() {
                     </div>
                 ))}
             </div>
+            {DialogComponent}
         </div>
     );
 }

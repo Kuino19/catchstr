@@ -9,7 +9,7 @@ const mux = new Mux({
 
 export async function POST(req: Request) {
     try {
-        const { streamId, userId, startTime, endTime } = await req.json();
+        const { streamId, userId, startTime, endTime, description } = await req.json();
 
         if (!streamId || !userId) {
             return NextResponse.json({ error: 'Missing streamId or userId' }, { status: 400 });
@@ -52,9 +52,9 @@ export async function POST(req: Request) {
         if (playbackId) {
             const { error } = await supabaseAdmin.from('posts').insert({
                 author_id: userId,
-                content: 'Check out this live clip!',
-                media_url: playbackId, // Store the playback ID instead of a direct URL
-                is_mux_asset: true // Useful flag if they mix Mux and Supabase Storage videos
+                content: description || 'Check out this live clip! 🔥',
+                media_url: playbackId,
+                is_mux_asset: true
             });
             if (error) console.error("Error saving clip to DB:", error);
         }

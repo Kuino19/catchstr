@@ -8,7 +8,7 @@ export default async function LiveDiscoveryPage() {
     // Fetch all active live streams
     const { data: activeStreams } = await supabase
         .from('active_streams')
-        .select('*')
+        .select('id, user_id, stream_id, playback_id, status, created_at')
         .eq('status', 'live')
         .order('created_at', { ascending: false });
 
@@ -19,7 +19,7 @@ export default async function LiveDiscoveryPage() {
         const userIds = activeStreams.map(s => s.user_id);
         const { data: profiles } = await supabase
             .from('profiles')
-            .select('*')
+            .select('id, full_name, username, avatar_url, name')
             .in('id', userIds);
 
         if (profiles) {

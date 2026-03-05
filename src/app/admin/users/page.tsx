@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { logAdminAction, downloadCSV } from '@/lib/admin';
+import { downloadCSV } from '@/lib/admin';
 
 interface Profile {
     id: string;
@@ -25,9 +25,10 @@ export default function UserManagementPage() {
 
     async function fetchUsers() {
         setLoading(true);
+        // ✅ Only select the columns we actually render, not select('*')
         const { data, error } = await supabase
             .from('profiles')
-            .select('*')
+            .select('id, full_name, role, is_suspended, created_at')
             .order('created_at', { ascending: false });
 
         if (data && !error) {
@@ -48,25 +49,28 @@ export default function UserManagementPage() {
 
     async function toggleSuspension(userId: string, currentStatus: boolean) {
         const newStatus = !currentStatus;
-        const { error } = await supabase
-            .from('profiles')
-            .update({ is_suspended: newStatus })
-            .eq('id', userId);
 
-        if (!error) {
+        // ✅ Use server-side API route which verifies admin role before mutating
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch('/api/admin/users/suspend', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({ userId, isSuspended: newStatus }),
+        });
+
+        if (res.ok) {
             setUsers(users.map(u => u.id === userId ? { ...u, is_suspended: newStatus } : u));
-            logAdminAction(
-                newStatus ? 'Suspend User' : 'Unsuspend User',
-                'user',
-                userId,
-                { previous_status: currentStatus, new_status: newStatus }
-            );
+        } else {
+            const err = await res.json();
+            console.error('Failed to update suspension status:', err);
         }
     }
 
     const handleExport = () => {
         downloadCSV(filteredUsers, 'catchstr_users_export');
-        logAdminAction('Export Users CSV', 'system', undefined, { count: filteredUsers.length });
     };
 
     return (
@@ -159,8 +163,8 @@ export default function UserManagementPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter ${user.role === 'Agent' ? 'bg-primary/20 text-primary border border-primary/20' :
-                                                    user.role === 'Scout' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/20' :
-                                                        'bg-slate-500/20 text-slate-400 border border-slate-500/20'
+                                                user.role === 'Scout' ? 'bg-amber-500/20 text-amber-500 border border-amber-500/20' :
+                                                    'bg-slate-500/20 text-slate-400 border border-slate-500/20'
                                                 }`}>
                                                 {user.role}
                                             </span>
@@ -170,8 +174,8 @@ export default function UserManagementPage() {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black ${user.is_suspended
-                                                    ? 'bg-red-500/10 text-red-500'
-                                                    : 'bg-green-500/10 text-green-500'
+                                                ? 'bg-red-500/10 text-red-500'
+                                                : 'bg-green-500/10 text-green-500'
                                                 }`}>
                                                 <span className={`w-1.5 h-1.5 rounded-full ${user.is_suspended ? 'bg-red-500' : 'bg-green-500'}`}></span>
                                                 {user.is_suspended ? 'SUSPENDED' : 'ACTIVE'}
@@ -183,8 +187,8 @@ export default function UserManagementPage() {
                                                     onClick={() => toggleSuspension(user.id, user.is_suspended)}
                                                     title={user.is_suspended ? 'Unsuspend' : 'Suspend'}
                                                     className={`h-9 w-9 rounded-xl flex items-center justify-center transition-all ${user.is_suspended
-                                                            ? 'bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white'
-                                                            : 'bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white'
+                                                        ? 'bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white'
+                                                        : 'bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white'
                                                         }`}
                                                 >
                                                     <span className="material-symbols-outlined text-lg">

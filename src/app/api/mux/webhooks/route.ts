@@ -1,24 +1,32 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/admin';
 import Mux from '@mux/mux-node';
-import crypto from 'crypto';
 
 const mux = new Mux({
     tokenId: process.env.MUX_TOKEN_ID!,
     tokenSecret: process.env.MUX_TOKEN_SECRET!,
 });
 
-// You should set this in your .env.local after setting up the webhook in the Mux Dashboard
-const webhookSecret = process.env.MUX_WEBHOOK_SECRET;
-
 export async function POST(req: Request) {
     try {
-        const payload = await req.json();
-        const signature = req.headers.get('mux-signature');
+        // ✅ SECURITY: Verify the webhook signature to ensure this request is from Mux
+        const body = await req.text();
+        const signature = req.headers.get('mux-signature') ?? '';
+        const webhookSecret = process.env.MUX_WEBHOOK_SECRET;
 
-        // Note: For a production app, you MUST verify the webhook signature here using:
-        // Mux.Webhooks.verifySignature(JSON.stringify(payload), req.headers, webhookSecret)
+        if (!webhookSecret) {
+            console.error('MUX_WEBHOOK_SECRET is not configured. Rejecting webhook.');
+            return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
+        }
 
+        try {
+            mux.webhooks.verifySignature(body, req.headers, webhookSecret);
+        } catch (err) {
+            console.error('Mux webhook signature verification failed:', err);
+            return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+        }
+
+        const payload = JSON.parse(body);
         console.log('Received Mux Webhook:', payload.type);
 
         // When a live stream ends, Mux generates a VOD asset.
@@ -32,16 +40,16 @@ export async function POST(req: Request) {
                 const playbackId = asset.playback_ids?.[0]?.id;
 
                 if (playbackId) {
-                    // Find the user who created this stream
-                    const { data: activeStream } = await supabase
+                    // Find the user who created this stream (use admin client for reliability)
+                    const { data: activeStream } = await supabaseAdmin
                         .from('active_streams')
                         .select('user_id')
                         .eq('stream_id', asset.live_stream_id)
                         .single();
 
                     if (activeStream) {
-                        // Insert into our new past_broadcasts table
-                        const { error } = await supabase.from('past_broadcasts').insert({
+                        // Insert into our past_broadcasts table
+                        const { error } = await supabaseAdmin.from('past_broadcasts').insert({
                             user_id: activeStream.user_id,
                             asset_id: asset.id,
                             playback_id: playbackId,

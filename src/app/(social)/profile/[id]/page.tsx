@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import PostCard from '@/components/PostCard';
+import toast from 'react-hot-toast';
 
 interface Profile {
     id: string;
@@ -70,7 +71,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
             // Fetch profile
             const { data: profileData } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('id, full_name, role, position, location, avatar_url, banner_url, bio, market_value')
                 .eq('id', profileId)
                 .single();
 
@@ -81,7 +82,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
             // Fetch posts
             const { data: postsData } = await supabase
                 .from('posts')
-                .select(`*, profiles:author_id (*)`)
+                .select('id, content, media_url, likes_count, created_at, profiles:author_id (id, full_name, role, position, location, avatar_url)')
                 .eq('author_id', profileId)
                 .order('created_at', { ascending: false });
 
@@ -122,7 +123,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
                 // Check Interest Flag
                 const { data: flagData } = await supabase
                     .from('interest_flags')
-                    .select('*')
+                    .select('id')
                     .eq('agent_id', myId)
                     .eq('player_id', profileId)
                     .single();
@@ -204,7 +205,7 @@ export default function PublicProfilePage({ params }: { params: Promise<{ id: st
     const handleEndorse = async () => {
         if (!currentUserId || !myProfile || profile?.role !== 'Player') return;
         if (myProfile.role !== 'Agent') {
-            alert("Only verified agents can endorse players.");
+            toast.error('Only verified agents can endorse players.');
             return;
         }
 

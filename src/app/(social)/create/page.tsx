@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import imageCompression from 'browser-image-compression';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 export default function CreateHighlightPage() {
     const router = useRouter();
@@ -49,7 +50,7 @@ export default function CreateHighlightPage() {
 
         // Validation for stories
         if (isStory && file?.type.startsWith('video/') && (endTime - startTime) > 60) {
-            alert('Stories cannot be longer than 60 seconds. Please trim your video.');
+            toast.error('Stories cannot be longer than 60 seconds. Please trim your video.');
             return;
         }
 
@@ -124,11 +125,11 @@ export default function CreateHighlightPage() {
             }
 
             // Success! 
-            alert(isStory ? 'Story posted successfully!' : 'Post shared with the world!');
-            window.location.href = '/';
+            toast.success(isStory ? 'Story posted! 🎉' : 'Post shared with the world! 🚀');
+            router.push('/');
         } catch (error: any) {
             console.error('Upload failed:', error);
-            alert(`Upload failed: ${error.message || 'Check connection'}`);
+            toast.error(`Upload failed: ${error.message || 'Check connection'}`);
         } finally {
             setUploading(false);
         }

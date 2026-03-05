@@ -10,7 +10,7 @@ import ClipButton from '@/components/live/ClipButton';
 export default async function ViewerPage({ params }: any) {    // 1. Find the user by username to get their ID
     const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, username, avatar_url, name, full_name')
         .eq('username', params.username)
         .single();
 
@@ -21,7 +21,7 @@ export default async function ViewerPage({ params }: any) {    // 1. Find the us
     // 2. See if this user has an active stream
     const { data: activeStream } = await supabase
         .from('active_streams')
-        .select('*')
+        .select('id, user_id, stream_id, playback_id, status')
         .eq('user_id', profile.id)
         .eq('status', 'live')
         .maybeSingle();

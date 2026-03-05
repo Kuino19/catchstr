@@ -27,7 +27,7 @@ export default function ChatPage() {
                 // Here, we just fetch other profiles.
                 const { data, error } = await supabase
                     .from('profiles')
-                    .select('*')
+                    .select('id, full_name, role, position, avatar_url')
                     .neq('id', session.user.id)
                     .limit(20);
 

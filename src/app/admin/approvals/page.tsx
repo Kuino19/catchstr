@@ -19,7 +19,7 @@ export default function ApprovalsPage() {
         setLoading(true);
         const { data } = await supabase
             .from('profiles')
-            .select('*')
+            .select('id, full_name, avatar_url, location, bio, created_at')
             .eq('role', 'Agent')
             .eq('verification_status', 'pending')
             .order('created_at', { ascending: false });

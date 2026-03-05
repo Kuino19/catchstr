@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import BottomNav from '@/components/BottomNav';
+import toast from 'react-hot-toast';
 
 interface Profile {
     full_name: string;
@@ -42,7 +43,7 @@ export default function EditProfilePage() {
 
             const { data, error } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('full_name, role, position, location, bio, avatar_url, banner_url')
                 .eq('id', session.user.id)
                 .maybeSingle();
 
@@ -108,7 +109,7 @@ export default function EditProfilePage() {
             router.push('/profile');
             router.refresh();
         } catch (error: any) {
-            alert("Error updating profile: " + error.message);
+            toast.error('Error updating profile: ' + error.message);
         } finally {
             setSaving(false);
         }
@@ -194,8 +195,8 @@ export default function EditProfilePage() {
                                         type="button"
                                         onClick={() => setProfile({ ...profile, role: r })}
                                         className={`py-3 px-4 rounded-xl text-sm font-bold transition-all border-2 ${profile.role === r
-                                                ? 'bg-primary/10 border-primary text-primary'
-                                                : 'bg-slate-50 dark:bg-slate-800 border-transparent text-slate-500'
+                                            ? 'bg-primary/10 border-primary text-primary'
+                                            : 'bg-slate-50 dark:bg-slate-800 border-transparent text-slate-500'
                                             }`}
                                     >
                                         {r}

@@ -3,6 +3,8 @@ import { useEffect, useState, use, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
+import toast from 'react-hot-toast';
+import { useConfirm } from '@/components/ConfirmDialog';
 
 interface Profile {
     id: string;
@@ -26,6 +28,7 @@ export default function StoryViewerPage({ params }: { params: Promise<{ userId: 
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const { confirm: confirmDialog, DialogComponent } = useConfirm();
 
     // Time progress bar state
     const [progress, setProgress] = useState(0);
@@ -41,10 +44,10 @@ export default function StoryViewerPage({ params }: { params: Promise<{ userId: 
 
             const { data, error } = await supabase
                 .from('stories')
-                .select(`*, profiles:author_id (*)`)
+                .select('id, author_id, media_url, content, created_at, profiles:author_id (id, full_name, avatar_url)')
                 .eq('author_id', userId)
                 .gte('created_at', yesterday.toISOString())
-                .order('created_at', { ascending: true }); // chronological
+                .order('created_at', { ascending: true });
 
             if (data && data.length > 0) {
                 setStories(data as unknown as Story[]);
@@ -96,7 +99,13 @@ export default function StoryViewerPage({ params }: { params: Promise<{ userId: 
     };
 
     const handleDeleteStory = async (storyId: string) => {
-        if (!confirm('Delete this story?')) return;
+        const ok = await confirmDialog({
+            title: 'Delete story?',
+            message: 'This story will be permanently removed.',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!ok) return;
 
         const { error } = await supabase
             .from('stories')
@@ -104,9 +113,8 @@ export default function StoryViewerPage({ params }: { params: Promise<{ userId: 
             .eq('id', storyId);
 
         if (error) {
-            alert('Error deleting story: ' + error.message);
+            toast.error('Error deleting story.');
         } else {
-            // Remove from local state
             const updatedStories = stories.filter(s => s.id !== storyId);
             if (updatedStories.length === 0) {
                 router.push('/');
@@ -231,6 +239,7 @@ export default function StoryViewerPage({ params }: { params: Promise<{ userId: 
             {/* Invisible Touch Zones for Navigation */}
             <div className="absolute inset-y-0 left-0 w-1/3 z-40" onClick={handlePrev} />
             <div className="absolute inset-y-0 right-0 w-2/3 z-40" onClick={handleNext} />
+            {DialogComponent}
         </div>
     );
 }

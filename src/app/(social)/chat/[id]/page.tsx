@@ -41,7 +41,7 @@ export default function DirectMessagePage() {
             // Fetch receiver profile
             const { data: receiverData } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('id, full_name, role, position, avatar_url')
                 .eq('id', receiverId)
                 .single();
 
@@ -52,7 +52,7 @@ export default function DirectMessagePage() {
             // Fetch REAL conversation history
             const { data: messageData, error } = await supabase
                 .from('messages')
-                .select('*')
+                .select('id, sender_id, receiver_id, content, created_at')
                 .or(`and(sender_id.eq.${session.user.id},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${session.user.id})`)
                 .order('created_at', { ascending: true });
 

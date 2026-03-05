@@ -23,7 +23,7 @@ export default function settingsPage() {
         setLoading(true);
         const { data, error } = await supabase
             .from('system_settings')
-            .select('*');
+            .select('key, value, description, updated_at');
 
         if (data && !error) {
             setSettings(data);

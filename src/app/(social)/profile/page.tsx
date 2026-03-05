@@ -60,7 +60,7 @@ export default function ProfilePage() {
                 // Fetch Profile
                 const { data: profileData } = await supabase
                     .from('profiles')
-                    .select('*')
+                    .select('id, full_name, role, position, location, avatar_url, bio, banner_url, market_value')
                     .eq('id', session.user.id)
                     .single();
 
@@ -71,7 +71,7 @@ export default function ProfilePage() {
                 // Fetch Posts
                 const { data: postsData } = await supabase
                     .from('posts')
-                    .select(`*, profiles:author_id (*)`)
+                    .select('id, content, media_url, likes_count, created_at, profiles:author_id (id, full_name, role, position, location, avatar_url)')
                     .eq('author_id', session.user.id)
                     .order('created_at', { ascending: false });
 
@@ -115,7 +115,7 @@ export default function ProfilePage() {
                 // Fetch Past Broadcasts
                 const { data: vods } = await supabase
                     .from('past_broadcasts')
-                    .select('*')
+                    .select('id, user_id, asset_id, playback_id, duration, created_at')
                     .eq('user_id', session.user.id)
                     .order('created_at', { ascending: false });
                 if (vods) setPastBroadcasts(vods);
@@ -311,6 +311,7 @@ export default function ProfilePage() {
                                     key={post.id}
                                     post={post}
                                     currentUserId={profile?.id || null}
+                                    onDelete={(id) => setPosts(prev => prev.filter(p => p.id !== id))}
                                 />
                             ))
                         )}

@@ -74,10 +74,8 @@ export default function FloatingReactions({ streamId, isBroadcaster = false }: {
         sendReaction(gift.emoji);
         setShowGifts(false);
 
-        // In a real implementation we would call a secure Edge Function here:
+        // When implementing virtual payments, call a secure Edge Function here:
         // await supabase.functions.invoke('send-virtual-gift', { body: { receiverId: ..., amount: gift.cost, giftId: gift.id } })
-
-        console.log(`Sending gift: ${gift.name} costing ${gift.cost} coins`);
     };
 
     return (

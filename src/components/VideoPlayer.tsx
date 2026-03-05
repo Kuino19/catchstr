@@ -3,9 +3,10 @@ import { useRef, useState, useEffect } from 'react';
 
 interface VideoPlayerProps {
     src: string;
+    poster?: string; // Optional thumbnail shown before video loads
 }
 
-export default function VideoPlayer({ src }: VideoPlayerProps) {
+export default function VideoPlayer({ src, poster }: VideoPlayerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(true);
@@ -125,6 +126,7 @@ export default function VideoPlayer({ src }: VideoPlayerProps) {
             <video
                 ref={videoRef}
                 src={src}
+                poster={poster}
                 className="w-full h-full object-contain"
                 loop
                 muted={isMuted}

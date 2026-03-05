@@ -5,6 +5,7 @@ import MuxPlayer from '@mux/mux-player-react';
 import LiveChat from '@/components/live/LiveChat';
 import { PlayCircle, Key, RefreshCw, Copy, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import toast from 'react-hot-toast';
 
 export default function AdminLiveStudio() {
     const [stream, setStream] = useState<any>(null);
@@ -33,7 +34,7 @@ export default function AdminLiveStudio() {
             setStream(data);
         } catch (error) {
             console.error('Error creating stream:', error);
-            alert('Failed to create live stream. Please check Mux API keys.');
+            toast.error('Failed to create live stream. Please check Mux API keys.');
         } finally {
             setIsLoading(false);
         }

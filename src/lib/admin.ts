@@ -1,4 +1,3 @@
-import { supabase } from './supabase';
 import { createClient } from '@supabase/supabase-js';
 
 // Admin client that bypasses RLS. ONLY USE IN API ROUTES, NEVER IN CLIENT COMPONENTS
@@ -13,11 +12,8 @@ export async function logAdminAction(
     targetId?: string,
     details?: any
 ) {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) return;
-
-    await supabase.from('audit_logs').insert([{
-        admin_id: session.user.id,
+    // logAdminAction should only be called from API routes where supabaseAdmin is safe to use
+    await supabaseAdmin.from('audit_logs').insert([{
         action,
         target_type: targetType,
         target_id: targetId,
@@ -25,14 +21,22 @@ export async function logAdminAction(
     }]);
 }
 
+// ✅ SECURITY: Sanitize CSV cell values to prevent CSV injection
+// Cells starting with =, +, -, @ are treated as formulas by Excel/Sheets
+function sanitizeCSVCell(val: any): string {
+    if (val === null || val === undefined) return '';
+    const str = typeof val === 'string' ? `"${val.replace(/"/g, '""')}"` : String(val);
+    // Prefix dangerous formula starters with a tab character to neutralize them
+    if (/^[=+\-@\t\r]/.test(str)) return `\t${str}`;
+    return str;
+}
+
 export function downloadCSV(data: any[], filename: string) {
     if (data.length === 0) return;
 
     const headers = Object.keys(data[0]).join(',');
     const rows = data.map(obj =>
-        Object.values(obj).map(val =>
-            typeof val === 'string' ? `"${val.replace(/"/g, '""')}"` : val
-        ).join(',')
+        Object.values(obj).map(sanitizeCSVCell).join(',')
     ).join('\n');
 
     const csvContent = `${headers}\n${rows}`;
@@ -45,4 +49,5 @@ export function downloadCSV(data: any[], filename: string) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }

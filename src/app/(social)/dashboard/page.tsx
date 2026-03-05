@@ -32,7 +32,7 @@ export default function DashboardPage() {
             // Profile
             const { data: pData } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('id, full_name, avatar_url, role, position, location, bio')
                 .eq('id', session.user.id)
                 .single();
             setProfile(pData);

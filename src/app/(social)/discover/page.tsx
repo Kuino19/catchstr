@@ -46,14 +46,14 @@ export default function DiscoverPage() {
             if (session?.user) {
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('*')
+                    .select('id, full_name, role, position, location, avatar_url')
                     .eq('id', session.user.id)
                     .single();
                 if (profile) setCurrentUserProfile(profile as Profile);
             }
 
             // Build Query
-            let query = supabase.from('posts').select(`*, profiles:author_id (*)`);
+            let query = supabase.from('posts').select('id, content, media_url, likes_count, created_at, tags, profiles:author_id (id, full_name, role, position, location, avatar_url)');
 
             if (selectedRole) {
                 query = query.eq('profiles.role', selectedRole);

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import FloatingReactions from '@/components/live/FloatingReactions';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 
 export default function UserLiveStudio() {
     const [streamData, setStreamData] = useState<any>(null);
@@ -107,7 +108,17 @@ export default function UserLiveStudio() {
     const goLive = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('/api/mux/live-streams', { method: 'POST' });
+            // ✅ Pass the session token so the API can verify our identity
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                toast.error('You must be logged in to go live.');
+                return;
+            }
+
+            const response = await fetch('/api/mux/live-streams', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${session.access_token}` },
+            });
             const data = await response.json();
 
             if (data.error) throw new Error(data.error);
@@ -153,9 +164,13 @@ export default function UserLiveStudio() {
                     status: 'live'
                 }, { onConflict: 'user_id' });
 
+                // ✅ Pass auth token for notifications API
                 fetch('/api/notifications/live', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`,
+                    },
                     body: JSON.stringify({
                         broadcasterId: user.id,
                         broadcasterUsername: user.email.split('@')[0],
@@ -166,7 +181,7 @@ export default function UserLiveStudio() {
 
         } catch (error) {
             console.error('Error going live:', error);
-            alert('Failed to connect broadcast. Please try again.');
+            toast.error('Failed to connect broadcast. Please try again.');
         } finally {
             setIsLoading(false);
         }

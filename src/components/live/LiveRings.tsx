@@ -26,7 +26,7 @@ export default function LiveRings() {
     const fetchLiveUsers = async () => {
         const { data: activeStreams } = await supabase
             .from('active_streams')
-            .select('*')
+            .select('id, user_id, stream_id, playback_id, status, created_at')
             .eq('status', 'live')
             .order('created_at', { ascending: false });
 

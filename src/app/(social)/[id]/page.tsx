@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import toast from 'react-hot-toast';
 
 interface Message {
     id: string;
@@ -58,7 +59,7 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
             // Fetch recipient profile
             const { data: recipientData } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('id, full_name, avatar_url, role')
                 .eq('id', recipientId)
                 .single();
 
@@ -69,7 +70,7 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
             // Fetch chat history between the two users
             const { data: messagesData, error } = await supabase
                 .from('messages')
-                .select('*')
+                .select('id, sender_id, receiver_id, content, audio_url, created_at')
                 .or(`and(sender_id.eq.${myId},receiver_id.eq.${recipientId}),and(sender_id.eq.${recipientId},receiver_id.eq.${myId})`)
                 .order('created_at', { ascending: true });
 
@@ -157,7 +158,7 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
             }, 1000);
         } catch (err) {
             console.error("Recording error:", err);
-            alert("Could not access microphone.");
+            toast.error('Could not access microphone.');
         }
     };
 
@@ -206,7 +207,7 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
 
         } catch (err) {
             console.error("Audio upload failed:", err);
-            alert("Failed to send voice message.");
+            toast.error('Failed to send voice message.');
         }
     };
 
@@ -254,7 +255,7 @@ export default function ChatRoomPage({ params }: { params: Promise<{ id: string 
             console.error('Error sending message:', error);
             // Remove optimistic message on error
             setMessages((prev) => prev.filter(m => m.id !== tempId));
-            alert('Failed to send message. Please try again.');
+            toast.error('Failed to send message. Please try again.');
         } else {
             // Also insert a notification for the recipient
             await supabase.from('notifications').insert([{
